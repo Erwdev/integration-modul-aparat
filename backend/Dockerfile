@@ -1,21 +1,20 @@
 FROM node:18-alpine
 
-# Set working directory untuk api
 WORKDIR /app/api
 
-# Copy package.json files
+# Copy package files first for better caching
 COPY api/package*.json ./
 
-# Install dependencies
+# Clean install dependencies
 RUN npm ci
 
-# Copy source files
+# Copy rest of the application
 COPY api/ .
 
-# Build NestJS app
+# Build the application
 RUN npm run build
 
 EXPOSE 3000
 
-# Run production build
+# Use production start command
 CMD ["npm", "run", "start:prod"]

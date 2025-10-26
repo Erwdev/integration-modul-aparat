@@ -15,8 +15,22 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return API info', () => {
+      expect(appController.getRoot()).toEqual({
+        message: 'Aparat Backend API - Sprint 1',
+        version: '1.0.0',
+        status: 'active',
+      });
+    });
+  });
+
+  describe('health', () => {
+    it('should return health status', () => {
+      const result = appController.getHealth();
+      expect(result).toHaveProperty('status', 'ok');
+      expect(result).toHaveProperty('service', 'aparat-backend');
+      expect(result).toHaveProperty('timestamp');
+      expect(result).toHaveProperty('uptime');
     });
   });
 });
