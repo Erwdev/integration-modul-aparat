@@ -7,10 +7,11 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Environment variables
+!.env.example
 .env
 .env.local
+.env.*.local
 .env*.local
-!.env.example
 
 # Build output
 dist/

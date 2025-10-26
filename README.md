@@ -1,4 +1,3 @@
-
 # Integration Modul Aparat — Sprint 1
 
 Backend untuk modul **Aparat** menggunakan **NestJS + PostgreSQL** berjalan melalui **Docker Compose**.
@@ -23,21 +22,44 @@ Opsional:
 ```bash
 git clone https://github.com/<username>/<repo-name>.git
 cd integration-modul-aparat
-```
+````
 
 > Semua perintah harus dijalankan dari **root folder** project ini ✅
-### ✅ 2.5. Setup Environment Variables (Opsional untuk Sprint 1)
 
-Untuk development lokal dengan konfigurasi custom:
+---
+
+### ✅ 2.5. Environment Variables (Opsional untuk Sprint 1)
+
+Untuk konfigurasi custom, buat file `.env` di root folder dengan isi berikut:
+
 ```bash
-cp .env.example .env
-# Edit .env sesuai kebutuhan
+# Database Configuration
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=aparat
+DATABASE_URL=postgresql://postgres:postgres@db:5432/aparat
+
+# JWT Configuration (Sprint 1 - stub only)
+JWT_SECRET=your-secret-key-change-in-production
+JWT_EXPIRES_IN=30m
+JWT_REFRESH_EXPIRES_IN=7d
+
+# API Configuration
+PORT=3000
+NODE_ENV=development
+
+# API Keys for Inter-Module Communication (Sprint 2+)
+# API_KEY_AGENDA=
+# API_KEY_EKSPEDISI=
 ```
+
+> **📌 Catatan Sprint 1**: Environment variables sudah di-hardcode di `docker-compose.yml`.  
+> File `.env` hanya diperlukan untuk konfigurasi kustom atau production deployment.
+
 ---
 
 ### ✅ 3. Jalankan Docker (Development Hot Reload)
-
-```bash
+‐```bash
 docker compose up -d --build
 ```
 
@@ -116,7 +138,11 @@ git checkout -b feature/migration-aparat
 ```
 
 Submit Pull Request → `dev`
-Review: Integration Lead ✅
+Review: Integration Lead ````
+
+---
+
+
 
 Detail lebih lengkap → `CONTRIBUTING.md`
 
@@ -125,8 +151,10 @@ Detail lebih lengkap → `CONTRIBUTING.md`
 ## 🧩 Database & ERD
 
 * PostgreSQL dijalankan sebagai container Docker
-* Migration SQL ditempatkan di folder `/migrations`
-* ERD, ICD, dan RACI di `/docs` (diisi bertahap Sprint 1)
+* Migration SQL `ditempatkan di folder `/migrations`
+* ERD, ICD, dan RACI di `/docs` (diisi bertahap Sprin
+---
+t 1)
 
 ---
 
@@ -137,22 +165,3 @@ Detail lebih lengkap → `CONTRIBUTING.md`
 * Documentation Lead: **Anggota B**
 * Testing & QA: **Anggota C**
 * Helper / Observer: **Anggota D**
-
----
-
-> 🟢 Jika log backend muncul = environment siap digunakan ✅
-> 🎯 Tahap berikutnya: pengembangan fitur per modul & integrasi database
-
----
-
-## ✅ Checklist setelah kamu paste README
-
-```bash
-git add README.md
-git commit -m "Add full README with instructions ✅"
-git push origin dev
-```
-
-CI akan berjalan otomatis ✅
-Tim langsung bisa `clone` → `compose up` → **jalan**
-
