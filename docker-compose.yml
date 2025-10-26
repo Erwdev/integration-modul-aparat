@@ -1,0 +1,29 @@
+# version: '3.9'
+services:
+  backend:
+    build: ./backend
+    container_name: aparat-backend
+    volumes:
+      - ./backend/api:/app/api
+      - /app/api/node_modules
+    command: sh -c "npm ci && ./node_modules/.bin/nest start --watch"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: aparat-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: aparat
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
