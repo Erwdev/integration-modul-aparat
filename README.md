@@ -26,7 +26,13 @@ cd integration-modul-aparat
 ```
 
 > Semua perintah harus dijalankan dari **root folder** project ini ✅
+### ✅ 2.5. Setup Environment Variables (Opsional untuk Sprint 1)
 
+Untuk development lokal dengan konfigurasi custom:
+```bash
+cp .env.example .env
+# Edit .env sesuai kebutuhan
+```
 ---
 
 ### ✅ 3. Jalankan Docker (Development Hot Reload)
