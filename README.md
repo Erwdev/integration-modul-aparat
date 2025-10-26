@@ -1,167 +1,92 @@
 # Integration Modul Aparat — Sprint 1
 
-Backend untuk modul **Aparat** menggunakan **NestJS + PostgreSQL** berjalan melalui **Docker Compose**.
-Project ini dikerjakan oleh **Kelompok 9 — PRPL**.
+Backend service for **Aparat** module using **NestJS** and **PostgreSQL**, running through **Docker Compose**.
+Built by **Team 9 — PRPL**.
 
----
+## 📋 Requirements
 
-## 🚀 Cara Menjalankan Project
+- Docker Desktop
+- Git
+- Node.js (optional, for local development)
 
-### ✅ 1. Persiapan
-Pastikan sudah terinstall:
-- **Docker Desktop**
-- **Git**
+## 🚀 Quick Start
 
-Opsional:
-- **VSCode** untuk development
-- Internet stabil untuk pull Docker images pertama kali
-
----
-
-### ✅ 2. Clone Project
+1. Clone the repository
 ```bash
-git clone https://github.com/<username>/<repo-name>.git
+git clone <repository-url>
 cd integration-modul-aparat
-````
+```
 
-> Semua perintah harus dijalankan dari **root folder** project ini ✅
-
----
-
-### ✅ 2.5. Environment Variables (Opsional untuk Sprint 1)
-
-Untuk konfigurasi custom, buat file `.env` di root folder dengan isi berikut:
-
+2. Copy environment file
 ```bash
-# Database Configuration
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=aparat
-DATABASE_URL=postgresql://postgres:postgres@db:5432/aparat
-
-# JWT Configuration (Sprint 1 - stub only)
-JWT_SECRET=your-secret-key-change-in-production
-JWT_EXPIRES_IN=30m
-JWT_REFRESH_EXPIRES_IN=7d
-
-# API Configuration
-PORT=3000
-NODE_ENV=development
-
-# API Keys for Inter-Module Communication (Sprint 2+)
-# API_KEY_AGENDA=
-# API_KEY_EKSPEDISI=
+cp .env.example .env
 ```
 
-> **📌 Catatan Sprint 1**: Environment variables sudah di-hardcode di `docker-compose.yml`.  
-> File `.env` hanya diperlukan untuk konfigurasi kustom atau production deployment.
-
----
-
-### ✅ 3. Jalankan Docker (Development Hot Reload)
-‐```bash
-docker compose up -d --build
-```
-
-Cek container berjalan:
-
+3. Start the services
 ```bash
-docker ps
+docker compose up -d
 ```
 
-Pastikan service:
+The API will be available at `http://localhost:3000`
 
-* `aparat-backend`
-* `aparat-db`
+## 🛠️ Development
 
-**status: Up**
+### Branch Strategy
+- `main` - Production/stable releases
+- `dev` - Sprint integration branch
+- `feature/<task-name>` - Feature development
 
----
+### Making Changes
 
-### ✅ 4. Cek Log Backend (Hot Reload aktif)
-
+1. Create new feature branch from `dev`:
 ```bash
-docker logs -f aparat-backend
+git checkout dev
+git checkout -b feature/your-feature-name
 ```
 
-Jika berhasil, muncul output seperti:
-
-```
-[Nest] ... LOG [NestApplication] Nest application successfully started
-```
-
-Cek API:
-👉 [http://localhost:3000/](http://localhost:3000/)
-
----
-
-## 🔄 Development Workflow (Hot Reload)
-
-Edit file `.ts` → otomatis reload ✅
-Tidak perlu restart Docker setiap kode berubah.
-
-Jika benar-benar perlu restart backend:
-
+2. Make your changes and commit:
 ```bash
-docker compose restart backend
+git add .
+git commit -m "feat: your change description"
 ```
 
----
+3. Push and create PR:
+```bash
+git push origin feature/your-feature-name
+```
 
-## 📂 Struktur Project
+4. Submit Pull Request to `dev` branch
+
+### Development Rules
+- All services must run through Docker
+- Do not commit `node_modules`
+- Backend changes require test logs
+- Follow the PR review process
+
+## 🧪 Testing
+
+Run tests inside Docker:
+```bash
+docker compose exec backend npm test
+```
+
+## 📦 Project Structure
 
 ```
 integration-modul-aparat/
- ├── backend/api         # NestJS backend source
- ├── migrations          # SQL migrations (Sprint 1 DB)
- ├── docs                # ERD, ICD, RACI & laporan
- ├── .github/workflows   # GitHub Actions CI/CD
- ├── docker-compose.yml  # Dev environment config
- ├── CONTRIBUTING.md     # Pedoman kontribusi tim
- └── README.md           # Dokumentasi cara menjalankan
+├── .github/          # CI/CD workflows
+├── backend/          # NestJS API service
+│   ├── api/         # API source code
+│   └── Dockerfile   # Backend container config
+├── docs/            # Documentation
+├── migrations/      # Database migrations
+└── docker-compose.yml
 ```
 
----
+## 🤝 Contributing
 
-## 🌱 Branching Strategy
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
-| Branch           | Keterangan                |
-| ---------------- | ------------------------- |
-| `main`           | Release stable            |
-| `dev`            | Integrasi Sprint          |
-| `feature/<task>` | Pengembangan tiap anggota |
+## 📝 License
 
-Contoh:
-
-```bash
-git checkout -b feature/migration-aparat
-```
-
-Submit Pull Request → `dev`
-Review: Integration Lead ````
-
----
-
-
-
-Detail lebih lengkap → `CONTRIBUTING.md`
-
----
-
-## 🧩 Database & ERD
-
-* PostgreSQL dijalankan sebagai container Docker
-* Migration SQL `ditempatkan di folder `/migrations`
-* ERD, ICD, dan RACI di `/docs` (diisi bertahap Sprin
----
-t 1)
-
----
-
-## 👥 Kelompok 9 — PRPL
-
-* Integration Lead: **<Nama Kamu>**
-* Backend Database Engineer: **Anggota A**
-* Documentation Lead: **Anggota B**
-* Testing & QA: **Anggota C**
-* Helper / Observer: **Anggota D**
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

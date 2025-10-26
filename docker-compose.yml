@@ -7,11 +7,10 @@ services:
     volumes:
       - ./backend/api:/app/api
       - /app/api/node_modules
-    environment:
-      - NODE_ENV=development
-      - PORT=3000
+    env_file:
+      - .env
     ports:
-      - "3000:3000"
+      - "${PORT}:${PORT}"
     command: npm run start:dev
     depends_on:
       - db
@@ -19,10 +18,8 @@ services:
   db:
     image: postgres:15
     container_name: aparat-db
-    environment:
-      POSTGRES_DB: aparat
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
