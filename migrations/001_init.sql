@@ -6,6 +6,7 @@
 -- ============================================
 
 -- BEST PRACTICE: Wrap dalam transaction untuk atomicity
+-- jangan lupa lakukan rollback dengan konsiderasi jika belum ada data di dalamnya kalau ada salah bikin skema lakukan dengan hati-hati jika sudah ada data dan lakukan backup dan juga rollback clean entitas
 BEGIN;
 
 -- Enable UUID extension (idempotent)
