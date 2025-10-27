@@ -230,6 +230,8 @@ $$ LANGUAGE plpgsql;
 - ⚠️ NIK adalah data sensitif - hanya accessible dengan permission
 - ⚠️ Tanda tangan digital disimpan sebagai URL (file storage external)
 
+
+
 ### **Access Control**
 - 👤 **ADMIN**: Full CRUD + manage users
 - 👤 **OPERATOR**: CRUD aparat data

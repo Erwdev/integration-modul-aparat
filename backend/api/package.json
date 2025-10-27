@@ -7,7 +7,6 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -16,8 +15,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "migration:create": "typeorm migration:create",
+    "migration:generate": "typeorm migration:generate -d src/config/data-source.ts",
+    "migration:run": "typeorm migration:run -d src/config/data-source.ts",
+    "migration:revert": "typeorm migration:revert -d src/config/data-source.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -38,7 +40,7 @@
     "@nestjs/testing": "^11.1.7",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.10.7",
+    "@types/node": "^22.18.12",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
