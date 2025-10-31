@@ -2,12 +2,14 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches: [ "develop", "main" ] 
+    branches: [ "develop", "main" ]
   push:
-    branches: [ "develop", "main" ] 
+    branches: [ "develop", "main" ]
+# trigger for develop and main branch 
 jobs:
   backend-ci:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -15,16 +17,20 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install Dependencies
         working-directory: backend/api
         run: npm install
 
+      - name: Run Unit Tests
+        working-directory: backend/api
+        run: npm run test -- --ci --reporters=default --reporters=jest-junit
+
+      - name: Run Lint
+        working-directory: backend/api
+        run: npm run lint || echo "Lint not configured yet"
+
       - name: Build Backend
         working-directory: backend/api
         run: npm run build
-
-      - name: Run Lint (optional jika ada eslint)
-        working-directory: backend/api
-        run: npm run lint || echo "Lint not configured yet"
