@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 describe('AppController', () => {
   let appController: AppController;
-  let configService: ConfigService;
+  // Remove unused configService variable
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
@@ -20,7 +20,6 @@ describe('AppController', () => {
     }).compile();
 
     appController = app.get<AppController>(AppController);
-    configService = app.get<ConfigService>(ConfigService);
   });
 
   describe('root', () => {
