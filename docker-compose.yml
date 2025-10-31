@@ -1,0 +1,29 @@
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aparat-backend
+    volumes:
+      - ./backend/api:/app/api
+      - /app/api/node_modules
+    env_file:
+      - .env
+    ports:
+      - "${PORT}:${PORT}"
+    command: npm run start:dev
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: aparat-db
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
