@@ -27,7 +27,7 @@ export class UsersService {
    * Find user by ID (JWT validation)
    */
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: number): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id },
     });
@@ -53,10 +53,14 @@ export class UsersService {
    * Update user data
    */
 
-  async update(id: string, updateData: Partial<User>): Promise<User> {
+  async update(id: number, updateData: Partial<User>): Promise<User> {
     const user = await this.findById(id);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    if (updateData.password) {
+      delete updateData.password;
     }
 
     Object.assign(user, updateData);

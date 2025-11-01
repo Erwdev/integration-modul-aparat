@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module'; // ✅ tambahkan ini
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { UsersModule } from './users/users.module';
       isGlobal: true,
       envFilePath: ['.env', '.env.local'],
     }),
+
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -27,7 +29,9 @@ import { UsersModule } from './users/users.module';
       }),
       inject: [ConfigService],
     }),
+
     UsersModule,
+    AuthModule, // ✅ masukkan AuthModule di sini
   ],
   controllers: [AppController],
   providers: [AppService],
