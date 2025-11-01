@@ -1,4 +1,11 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  
+  Headers,
+  BadRequestException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -15,8 +22,19 @@ export class AuthController {
 
   @Post('refresh')
   async refresh(
-    @Body() refreshTokenDto: RefreshTokenDto,
+    @Headers('authorization') authHeader?: string,
+    @Body() body?: RefreshTokenDto,
   ): Promise<AuthResponseDto> {
-    return this.authService.refresh(refreshTokenDto);
+    const tokenFromHeader = authHeader?.startsWith('Bearer ')
+      ? authHeader.substring(7)
+      : undefined;
+
+    const refreshToken = tokenFromHeader ?? body?.refreshToken;
+
+    if (!refreshToken) {
+      throw new BadRequestException('Refresh token tidak ditemukan');
+    }
+
+    return this.authService.refresh({ refreshToken });
   }
 }

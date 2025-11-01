@@ -52,7 +52,7 @@ export class AuthService {
 
   async validateUser(payload: JwtPayload): Promise<User> {
     // JwtPayload.sub is string (standard). convert to number for DB lookup.
-    const userId = parseInt(String(payload.sub), 10);
+    const userId = payload.sub;
     const user = await this.usersService.findById(userId);
     if (!user) {
       throw new UnauthorizedException('User tidak ditemukan');
@@ -112,7 +112,7 @@ export class AuthService {
       );
 
       // decoded.sub is string; convert to number for DB lookup
-      const userId = Number(decoded.sub);
+      const userId = decoded.sub;
       const user = await this.usersService.findById(userId);
       if (!user) {
         throw new UnauthorizedException('User tidak ditemukan');

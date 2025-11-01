@@ -1,8 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-
+import { AuthModule } from './auth.module';
 describe('AuthModule (if exists)', () => {
   it('should compile auth module', async () => {
     // This is a placeholder test
@@ -15,7 +11,7 @@ describe('AuthModule (if exists)', () => {
       secret: 'test-secret',
       signOptions: { expiresIn: '30m' },
     };
-    
+
     expect(config.secret).toBeDefined();
     expect(config.signOptions.expiresIn).toBe('30m');
   });

@@ -1,40 +1,45 @@
 import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 import { LoginDto } from './login.dto';
 import { ValidationMessage } from '../../common/enums/validation-msg.enum';
 
 describe('LoginDto', () => {
   describe('Valid Data', () => {
     it('should pass validation with valid username and password', async () => {
-      const dto = new LoginDto();
-      dto.username = 'admin';
-      dto.password = 'admin123';
+      const dto = plainToInstance(LoginDto, {
+        username: 'admin',
+        password: 'admin123',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBe(0);
     });
 
     it('should pass with minimum password length (6 characters)', async () => {
-      const dto = new LoginDto();
-      dto.username = 'user';
-      dto.password = '123456';
+      const dto = plainToInstance(LoginDto, {
+        username: 'user',
+        password: '123456',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBe(0);
     });
 
     it('should pass with long username and password', async () => {
-      const dto = new LoginDto();
-      dto.username = 'verylongusername123';
-      dto.password = 'verylongpassword123456';
+      const dto = plainToInstance(LoginDto, {
+        username: 'verylongusername123',
+        password: 'verylongpassword123456',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBe(0);
     });
 
     it('should pass with special characters in password', async () => {
-      const dto = new LoginDto();
-      dto.username = 'admin';
-      dto.password = 'P@ssw0rd!2024';
+      const dto = plainToInstance(LoginDto, {
+        username: 'admin',
+        password: 'P@ssw0rd!2024',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBe(0);
@@ -43,9 +48,10 @@ describe('LoginDto', () => {
 
   describe('Username Validation', () => {
     it('should fail validation with empty username', async () => {
-      const dto = new LoginDto();
-      dto.username = '';
-      dto.password = 'admin123';
+      const dto = plainToInstance(LoginDto, {
+        username: '',
+        password: 'admin123',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
@@ -54,8 +60,9 @@ describe('LoginDto', () => {
     });
 
     it('should fail validation with undefined username', async () => {
-      const dto = new LoginDto();
-      dto.password = 'admin123';
+      const dto = plainToInstance(LoginDto, {
+        password: 'admin123',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
@@ -65,9 +72,10 @@ describe('LoginDto', () => {
     });
 
     it('should fail validation with null username', async () => {
-      const dto = new LoginDto();
-      dto.username = null as any;
-      dto.password = 'admin123';
+      const dto = plainToInstance(LoginDto, {
+        username: null as any,
+        password: 'admin123',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
@@ -77,18 +85,20 @@ describe('LoginDto', () => {
     });
 
     it('should fail validation with whitespace-only username', async () => {
-      const dto = new LoginDto();
-      dto.username = '   ';
-      dto.password = 'admin123';
+      const dto = plainToInstance(LoginDto, {
+        username: '   ',
+        password: 'admin123',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
     });
 
     it('should show correct error message for empty username', async () => {
-      const dto = new LoginDto();
-      dto.username = '';
-      dto.password = 'admin123';
+      const dto = plainToInstance(LoginDto, {
+        username: '',
+        password: 'admin123',
+      });
 
       const errors = await validate(dto);
       const usernameError = errors.find((e) => e.property === 'username');
@@ -101,9 +111,10 @@ describe('LoginDto', () => {
 
   describe('Password Validation', () => {
     it('should fail validation with empty password', async () => {
-      const dto = new LoginDto();
-      dto.username = 'admin';
-      dto.password = '';
+      const dto = plainToInstance(LoginDto, {
+        username: 'admin',
+        password: '',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
@@ -113,9 +124,10 @@ describe('LoginDto', () => {
     });
 
     it('should fail validation with password less than 6 characters', async () => {
-      const dto = new LoginDto();
-      dto.username = 'admin';
-      dto.password = '12345';
+      const dto = plainToInstance(LoginDto, {
+        username: 'admin',
+        password: '12345',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
@@ -126,8 +138,9 @@ describe('LoginDto', () => {
     });
 
     it('should fail validation with undefined password', async () => {
-      const dto = new LoginDto();
-      dto.username = 'admin';
+      const dto = plainToInstance(LoginDto, {
+        username: 'admin',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
@@ -137,9 +150,10 @@ describe('LoginDto', () => {
     });
 
     it('should fail validation with null password', async () => {
-      const dto = new LoginDto();
-      dto.username = 'admin';
-      dto.password = null as any;
+      const dto = plainToInstance(LoginDto, {
+        username: 'admin',
+        password: null as any,
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
@@ -149,9 +163,10 @@ describe('LoginDto', () => {
     });
 
     it('should show correct error message for empty password', async () => {
-      const dto = new LoginDto();
-      dto.username = 'admin';
-      dto.password = '';
+      const dto = plainToInstance(LoginDto, {
+        username: 'admin',
+        password: '',
+      });
 
       const errors = await validate(dto);
       const passwordError = errors.find((e) => e.property === 'password');
@@ -162,9 +177,10 @@ describe('LoginDto', () => {
     });
 
     it('should show correct error message for short password', async () => {
-      const dto = new LoginDto();
-      dto.username = 'admin';
-      dto.password = '123';
+      const dto = plainToInstance(LoginDto, {
+        username: 'admin',
+        password: '123',
+      });
 
       const errors = await validate(dto);
       const passwordError = errors.find((e) => e.property === 'password');
@@ -177,9 +193,10 @@ describe('LoginDto', () => {
 
   describe('Multiple Field Validation', () => {
     it('should fail with both username and password empty', async () => {
-      const dto = new LoginDto();
-      dto.username = '';
-      dto.password = '';
+      const dto = plainToInstance(LoginDto, {
+        username: '',
+        password: '',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThanOrEqual(2);
@@ -192,16 +209,17 @@ describe('LoginDto', () => {
     });
 
     it('should fail with both fields undefined', async () => {
-      const dto = new LoginDto();
+      const dto = plainToInstance(LoginDto, {});
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThanOrEqual(2);
     });
 
     it('should fail with username empty and password too short', async () => {
-      const dto = new LoginDto();
-      dto.username = '';
-      dto.password = '12';
+      const dto = plainToInstance(LoginDto, {
+        username: '',
+        password: '12',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThanOrEqual(2);
@@ -210,9 +228,14 @@ describe('LoginDto', () => {
 
   describe('Type Validation', () => {
     it('should fail with non-string username', async () => {
-      const dto = new LoginDto();
-      dto.username = 123 as any;
-      dto.password = 'admin123';
+      const dto = plainToInstance(
+        LoginDto,
+        {
+          username: 123 as any,
+          password: 'admin123',
+        },
+        { enableImplicitConversion: false }, // ✅ Disable auto-conversion
+      );
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
@@ -222,9 +245,14 @@ describe('LoginDto', () => {
     });
 
     it('should fail with non-string password', async () => {
-      const dto = new LoginDto();
-      dto.username = 'admin';
-      dto.password = 123456 as any;
+      const dto = plainToInstance(
+        LoginDto,
+        {
+          username: 'admin',
+          password: 123456 as any,
+        },
+        { enableImplicitConversion: false }, // ✅ Disable auto-conversion
+      );
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
@@ -234,38 +262,56 @@ describe('LoginDto', () => {
     });
 
     it('should fail with object as username', async () => {
-      const dto = new LoginDto();
-      dto.username = { name: 'admin' } as any;
-      dto.password = 'admin123';
+      const dto = plainToInstance(
+        LoginDto,
+        {
+          username: { name: 'admin' } as any,
+          password: 'admin123',
+        },
+        { enableImplicitConversion: false }, // ✅ Disable auto-conversion
+      );
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
+
+      const usernameError = errors.find((e) => e.property === 'username');
+      expect(usernameError).toBeDefined();
     });
 
     it('should fail with array as password', async () => {
-      const dto = new LoginDto();
-      dto.username = 'admin';
-      dto.password = ['a', 'b', 'c'] as any;
+      const dto = plainToInstance(
+        LoginDto,
+        {
+          username: 'admin',
+          password: ['a', 'b', 'c'] as any,
+        },
+        { enableImplicitConversion: false }, // ✅ Disable auto-conversion
+      );
 
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
+
+      const passwordError = errors.find((e) => e.property === 'password');
+      expect(passwordError).toBeDefined();
     });
   });
 
   describe('Edge Cases', () => {
     it('should handle unicode characters in password', async () => {
-      const dto = new LoginDto();
-      dto.username = 'admin';
-      dto.password = 'pässwörd123';
+      const dto = plainToInstance(LoginDto, {
+        username: 'admin',
+        password: 'pässwörd123',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBe(0);
     });
 
     it('should handle emojis in password', async () => {
-      const dto = new LoginDto();
-      dto.username = 'admin';
-      dto.password = 'pass🔒word';
+      const dto = plainToInstance(LoginDto, {
+        username: 'admin',
+        password: 'pass🔒word',
+      });
 
       const errors = await validate(dto);
       expect(errors.length).toBe(0);

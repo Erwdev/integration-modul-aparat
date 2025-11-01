@@ -118,10 +118,7 @@ describe('User Entity', () => {
       const result = await user.validatePassword(plainPassword);
 
       expect(result).toBe(true);
-      expect(bcrypt.compare).toHaveBeenCalledWith(
-        plainPassword,
-        user.password,
-      );
+      expect(bcrypt.compare).toHaveBeenCalledWith(plainPassword, user.password);
     });
 
     it('should return false for incorrect password', async () => {
@@ -132,10 +129,7 @@ describe('User Entity', () => {
       const result = await user.validatePassword(plainPassword);
 
       expect(result).toBe(false);
-      expect(bcrypt.compare).toHaveBeenCalledWith(
-        plainPassword,
-        user.password,
-      );
+      expect(bcrypt.compare).toHaveBeenCalledWith(plainPassword, user.password);
     });
 
     it('should handle empty password', async () => {

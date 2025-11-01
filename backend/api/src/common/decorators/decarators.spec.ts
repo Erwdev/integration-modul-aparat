@@ -37,7 +37,10 @@ describe('Decorators', () => {
       } as ExecutionContext;
 
       // 🔽 UBAH INI: Panggil fungsi logika secara langsung
-      const result = getCurrentUserFromContext('username', mockExecutionContext);
+      const result = getCurrentUserFromContext(
+        'username',
+        mockExecutionContext,
+      );
 
       expect(result).toBe('testuser');
     });

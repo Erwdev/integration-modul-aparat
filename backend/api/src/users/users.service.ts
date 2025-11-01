@@ -59,6 +59,10 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
+    if (updateData.password) {
+      delete updateData.password;
+    }
+
     Object.assign(user, updateData);
     return this.userRepository.save(user);
   }

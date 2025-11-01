@@ -10,7 +10,7 @@ describe('UsersService', () => {
   let repository: Repository<User>;
 
   const mockUser: User = {
-    id: 'test-uuid-1',
+    id: 1,
     username: 'testuser',
     password: '$2b$10$hashedpassword',
     role: 'OPERATOR',
@@ -95,20 +95,35 @@ describe('UsersService', () => {
     it('should return user when found', async () => {
       mockRepository.findOne.mockResolvedValue(mockUser);
 
-      const result = await service.findById('test-uuid-1');
+      const result = await service.findById(1); // ✅ Correct: number
 
       expect(result).toEqual(mockUser);
       expect(mockRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'test-uuid-1' },
+        where: { id: 1 }, // ✅ Fix: Changed from 'id' to match column name in entity
       });
     });
 
     it('should return null when user not found', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findById('nonexistent-id');
+      const result = await service.findById(999); // ✅ Fix: Changed from string to number
 
       expect(result).toBeNull();
+      expect(mockRepository.findOne).toHaveBeenCalledWith({
+        where: { id: 999 }, // ✅ Added assertion
+      });
+    });
+
+    it('should handle numeric ID correctly', async () => {
+      const userId = 42;
+      mockRepository.findOne.mockResolvedValue(mockUser);
+
+      const result = await service.findById(userId);
+
+      expect(result).toEqual(mockUser);
+      expect(mockRepository.findOne).toHaveBeenCalledWith({
+        where: { id: userId },
+      });
     });
   });
 
@@ -162,18 +177,20 @@ describe('UsersService', () => {
       mockRepository.findOne.mockResolvedValue(mockUser);
       mockRepository.save.mockResolvedValue(updatedUser);
 
-      const result = await service.update('test-uuid-1', updateData);
+      const result = await service.update(1, updateData); // ✅ Already correct: number
 
       expect(result).toEqual(updatedUser);
-      expect(mockRepository.findOne).toHaveBeenCalled();
-      expect(mockRepository.save).toHaveBeenCalled();
+      expect(mockRepository.findOne).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
+      expect(mockRepository.save).toHaveBeenCalledWith(updatedUser);
     });
 
     it('should throw NotFoundException when user not found', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update('nonexistent-id', { nama_lengkap: 'Test' }),
+        service.update(999, { nama_lengkap: 'Test' }), // ✅ Fix: Changed from 'nonexistent-id' to 999
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -181,8 +198,32 @@ describe('UsersService', () => {
       mockRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update('test-id', { nama_lengkap: 'Test' }),
-      ).rejects.toThrow('User with ID test-id not found');
+        service.update(123, { nama_lengkap: 'Test' }), // ✅ Fix: Changed from 'test-id' to 123
+      ).rejects.toThrow('User with ID 123 not found');
+    });
+
+    it('should not allow password update through update method', async () => {
+      const updateData = {
+        nama_lengkap: 'Updated Name',
+        password: 'newpassword123',
+      };
+
+      mockRepository.findOne.mockResolvedValue(mockUser);
+      mockRepository.save.mockResolvedValue({
+        ...mockUser,
+        nama_lengkap: 'Updated Name',
+      });
+
+      await service.update(1, updateData);
+
+      // Get the saved object
+      const savedUser = mockRepository.save.mock.calls[0][0];
+
+      // Verify password was NOT changed to the new plaintext password
+      expect(savedUser).not.toHaveProperty('password', 'newpassword123');
+
+      // Verify other fields were updated
+      expect(savedUser.nama_lengkap).toBe('Updated Name');
     });
   });
 });
