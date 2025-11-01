@@ -36,18 +36,19 @@ export class AuthService {
   }
 
   private generateRefreshToken(payload: JwtPayload): string {
-  const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
-  const refreshExpiresIn = this.configService.get<number>('JWT_REFRESH_EXPIRES_IN') ?? '7d';
+    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+    const refreshExpiresIn =
+      this.configService.get<number>('JWT_REFRESH_EXPIRES_IN') ?? '7d';
 
-  if (!refreshSecret) {
-    throw new Error('JWT_REFRESH_SECRET is not configured');
+    if (!refreshSecret) {
+      throw new Error('JWT_REFRESH_SECRET is not configured');
+    }
+
+    return this.jwtService.sign(payload as Record<string, any>, {
+      secret: refreshSecret, // ✅ Gunakan JWT_REFRESH_SECRET yang sama
+      expiresIn: refreshExpiresIn,
+    });
   }
-
-  return this.jwtService.sign(payload as Record<string, any>, {
-    secret: refreshSecret,  // ✅ Gunakan JWT_REFRESH_SECRET yang sama
-    expiresIn: refreshExpiresIn,
-  });
-}
 
   async validateUser(payload: JwtPayload): Promise<User> {
     // JwtPayload.sub is string (standard). convert to number for DB lookup.
