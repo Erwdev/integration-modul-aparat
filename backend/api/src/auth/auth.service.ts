@@ -36,19 +36,18 @@ export class AuthService {
   }
 
   private generateRefreshToken(payload: JwtPayload): string {
-    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
-    const refreshExpiresIn =
-      this.configService.get<number>('JWT_REFRESH_EXPIRES_IN') || 604800;
+  const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+  const refreshExpiresIn = this.configService.get<number>('JWT_REFRESH_EXPIRES_IN') ?? '7d';
 
-    if (!refreshSecret) {
-      throw new Error('JWT_REFRESH_SECRET is not configured');
-    }
-
-    return this.jwtService.sign(payload as Record<string, any>, {
-      secret: this.configService.get<string>('JWT_SECRET')!,
-      expiresIn: refreshExpiresIn,
-    });
+  if (!refreshSecret) {
+    throw new Error('JWT_REFRESH_SECRET is not configured');
   }
+
+  return this.jwtService.sign(payload as Record<string, any>, {
+    secret: refreshSecret,  // ✅ Gunakan JWT_REFRESH_SECRET yang sama
+    expiresIn: refreshExpiresIn,
+  });
+}
 
   async validateUser(payload: JwtPayload): Promise<User> {
     // JwtPayload.sub is string (standard). convert to number for DB lookup.
@@ -112,7 +111,7 @@ export class AuthService {
       );
 
       // decoded.sub is string; convert to number for DB lookup
-      const userId = parseInt(String(decoded.sub), 10);
+      const userId = Number(decoded.sub);
       const user = await this.usersService.findById(userId);
       if (!user) {
         throw new UnauthorizedException('User tidak ditemukan');
