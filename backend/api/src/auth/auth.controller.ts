@@ -13,9 +13,8 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-    @Post('refresh')
-    async refresh(@Body() dto: RefreshTokenDto): Promise<AuthResponseDto> {
+  @Post('refresh')
+  async refresh(@Body() dto: RefreshTokenDto): Promise<AuthResponseDto> {
     return this.authService.refresh(dto);
-    }
-
+  }
 }

@@ -1,5 +1,5 @@
 import { IsString, IsNotEmpty } from 'class-validator';
-import { ValidationMessage } from 'src/common/enums/validation-msg.enum';
+import { ValidationMessage } from '../../common/enums/validation-msg.enum';
 
 export class RefreshTokenDto {
   @IsString()
