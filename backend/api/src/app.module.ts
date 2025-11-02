@@ -3,8 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
 import { UsersModule } from './users/users.module';
+import { ApiKeyModule } from './auth/api-key/api-key.module';
 
 @Module({
   imports: [
@@ -28,6 +28,7 @@ import { UsersModule } from './users/users.module';
       inject: [ConfigService],
     }),
     UsersModule,
+    ApiKeyModule, // ✅ module barumu di sini
   ],
   controllers: [AppController],
   providers: [AppService],
