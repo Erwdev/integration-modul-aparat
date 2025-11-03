@@ -509,3 +509,74 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+
+```
+integration-modul-aparat
+├─ backend
+│  ├─ api
+│  │  ├─ .prettierrc
+│  │  ├─ eslint.config.mjs
+│  │  ├─ jest.config.js
+│  │  ├─ nest-cli.json
+│  │  ├─ package-lock.json
+│  │  ├─ package.json
+│  │  ├─ README.md
+│  │  ├─ src
+│  │  │  ├─ app.controller.spec.ts
+│  │  │  ├─ app.controller.ts
+│  │  │  ├─ app.module.ts
+│  │  │  ├─ app.service.ts
+│  │  │  ├─ auth
+│  │  │  │  ├─ auth.controller.ts
+│  │  │  │  ├─ auth.module.ts
+│  │  │  │  ├─ auth.service.ts
+│  │  │  │  ├─ dto
+│  │  │  │  │  ├─ auth-response.dto.ts
+│  │  │  │  │  ├─ index.ts
+│  │  │  │  │  ├─ login.dto.spec.ts
+│  │  │  │  │  ├─ login.dto.ts
+│  │  │  │  │  └─ refresh-token.dto.ts
+│  │  │  │  └─ interfaces
+│  │  │  │     └─ jwt-payload.interface.ts
+│  │  │  ├─ common
+│  │  │  │  ├─ decorators
+│  │  │  │  │  ├─ current-user.decorator.ts
+│  │  │  │  │  ├─ index.ts
+│  │  │  │  │  └─ public.decorator.ts
+│  │  │  │  └─ enums
+│  │  │  │     └─ validation-msg.enum.ts
+│  │  │  ├─ config
+│  │  │  ├─ constants
+│  │  │  │  └─ app.constants.ts
+│  │  │  ├─ main.ts
+│  │  │  ├─ migrations
+│  │  │  └─ users
+│  │  │     ├─ entities
+│  │  │     │  ├─ user.entity.spec.ts
+│  │  │     │  └─ user.entity.ts
+│  │  │     ├─ users.module.ts
+│  │  │     ├─ users.service.spec.ts
+│  │  │     └─ users.service.ts
+│  │  ├─ test
+│  │  │  ├─ app.e2e-spec.ts
+│  │  │  ├─ helpers
+│  │  │  │  └─ mock-data.ts
+│  │  │  ├─ jest-e2e.json
+│  │  │  └─ setup.ts
+│  │  ├─ tsconfig.build.json
+│  │  └─ tsconfig.json
+│  ├─ Dockerfile
+│  ├─ package-lock.json
+│  └─ package.json
+├─ CONTRIBUTING.md
+├─ docker-compose.yml
+├─ docs
+│  ├─ ERD_2.png
+│  └─ schema.md
+├─ LICENSE
+├─ migrations
+│  ├─ 000_rollback_and_clean.sql
+│  └─ 001_init.sql
+└─ README.md
+
+```

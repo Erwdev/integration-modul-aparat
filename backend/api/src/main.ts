@@ -6,7 +6,9 @@ import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 import { AuditLoggerMiddleware } from './common/middleware/audit-logger.middleware';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'debug', 'log', 'verbose'],
+  });
   const configService = app.get(ConfigService);
 
   // ✅ Global ValidationPipe (supaya DTO auto-validasi)

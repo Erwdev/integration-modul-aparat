@@ -5,14 +5,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BeforeInsert,
-  BeforeUpdate,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn({ name: 'id_user' })
+  id: number;
 
   @Column({ unique: true })
   username: string;
@@ -33,15 +32,21 @@ export class User {
   updated_at: Date;
 
   @BeforeInsert()
-  @BeforeUpdate()
   async hashPassword(): Promise<void> {
-    if (this.password) {
-      const hashedPassword = await bcrypt.hash(this.password, 10);
+    if (this.password && !this.password.startsWith('$2b$')) {
+      const hashedPassword = await bcrypt.hash(this.password, 10); //adding check if the password already hashed
       this.password = hashedPassword; // Use the variable
     }
   }
+  // fixing password update flow should be through service to simplify hook
 
   async validatePassword(plainPassword: string): Promise<boolean> {
     return bcrypt.compare(plainPassword, this.password);
   }
+  //sementara linter disable
+
+  // toJSON() {
+  //   const { password, ...result } = this;
+  //   return result;
+  // }
 }

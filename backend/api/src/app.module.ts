@@ -5,6 +5,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ApiKeyModule } from './auth/api-key/api-key.module';
+import { AuthModule } from './auth/auth.module'; // ✅ tambahkan ini
+
 
 @Module({
   imports: [
@@ -12,6 +14,7 @@ import { ApiKeyModule } from './auth/api-key/api-key.module';
       isGlobal: true,
       envFilePath: ['.env', '.env.local'],
     }),
+
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -27,8 +30,10 @@ import { ApiKeyModule } from './auth/api-key/api-key.module';
       }),
       inject: [ConfigService],
     }),
+
     UsersModule,
     ApiKeyModule, // ✅ module barumu di sini
+    AuthModule, // ✅ masukkan AuthModule di sini
   ],
   controllers: [AppController],
   providers: [AppService],
