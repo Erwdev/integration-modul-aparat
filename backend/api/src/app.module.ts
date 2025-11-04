@@ -3,9 +3,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
 import { UsersModule } from './users/users.module';
+import { ApiKeyModule } from './auth/api-key/api-key.module';
 import { AuthModule } from './auth/auth.module'; // ✅ tambahkan ini
+
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { AuthModule } from './auth/auth.module'; // ✅ tambahkan ini
     }),
 
     UsersModule,
+    ApiKeyModule, // ✅ module barumu di sini
     AuthModule, // ✅ masukkan AuthModule di sini
   ],
   controllers: [AppController],
