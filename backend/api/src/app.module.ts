@@ -4,10 +4,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
+import { ApiKeyModule } from './auth/api-key/api-key.module';
 import { AuthModule } from './auth/auth.module'; // ✅ tambahkan ini
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core/constants';
+
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -32,6 +35,7 @@ import { APP_GUARD } from '@nestjs/core/constants';
     }),
 
     UsersModule,
+    ApiKeyModule, // ✅ module barumu di sini
     AuthModule, // ✅ masukkan AuthModule di sini
   ],
   controllers: [AppController],
