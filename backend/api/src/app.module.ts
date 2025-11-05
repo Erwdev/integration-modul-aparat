@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module'; // ✅ tambahkan ini
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core/constants';
+import { EventsModule } from './events/events.module';
 
 
 @Module({
@@ -36,7 +37,7 @@ import { APP_GUARD } from '@nestjs/core/constants';
 
     UsersModule,
     ApiKeyModule, // ✅ module barumu di sini
-    AuthModule, // ✅ masukkan AuthModule di sini
+    AuthModule, EventsModule, // ✅ masukkan AuthModule di sini
   ],
   controllers: [AppController],
   providers: [
