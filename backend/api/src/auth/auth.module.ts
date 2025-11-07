@@ -5,17 +5,17 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
-
+import { PassportModule } from '@nestjs/passport';
 @Module({
   imports: [
     ConfigModule,
     UsersModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService): JwtModuleOptions => {
-        const secret =
-          configService.get<string>('JWT_SECRET') ?? 'change-me-in-production';
+        const secret = configService.get<string>('JWT_SECRET') ?? 'change-me-in-production';
         const expiresIn = configService.get<number>('JWT_EXPIRES_IN') ?? '30m';
 
         return {
