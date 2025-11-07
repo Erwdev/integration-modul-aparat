@@ -1,0 +1,6 @@
+export enum StatusSurat {
+  DRAFT = 'DRAFT',
+  TERKIRIM = 'TERKIRIM',
+  DITERIMA = 'DITERIMA',
+  SELESAI = 'SELESAI',
+}

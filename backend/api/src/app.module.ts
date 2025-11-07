@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module'; // ✅ tambahkan ini
+import { SuratModule } from './surat/surat.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AuthModule } from './auth/auth.module'; // ✅ tambahkan ini
 
     UsersModule,
     AuthModule, // ✅ masukkan AuthModule di sini
+    SuratModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -3,7 +3,7 @@ import { User } from '../../src/users/entities/user.entity';
 export class MockDataHelper {
   static createMockUser(overrides?: Partial<User>): User {
     const user = new User();
-    user.id = 1;
+    user.id = 'test-uuid-123';
     user.username = 'testuser';
     user.password = '$2b$10$hashedpassword';
     user.role = 'OPERATOR';
@@ -28,7 +28,7 @@ export class MockDataHelper {
   static createMockUsers(count: number): User[] {
     return Array.from({ length: count }, (_, i) =>
       this.createMockUser({
-        id: i + 1,
+        id: `test-uuid-${i}`,
         username: `user${i}`,
         nama_lengkap: `Test User ${i}`,
       }),
@@ -71,7 +71,7 @@ export class MockDataHelper {
 
   static createMockJwtPayload(overrides?: any) {
     return {
-      sub: 1,
+      sub: 'test-uuid-123',
       username: 'testuser',
       role: 'OPERATOR',
       iat: Math.floor(Date.now() / 1000),
