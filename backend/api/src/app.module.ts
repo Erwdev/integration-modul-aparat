@@ -6,9 +6,14 @@ import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
 import { AparatModule } from './aparat/aparat.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ApiKeyModule } from './auth/api-key/api-key.module';
+import { AuthModule } from './auth/auth.module'; 
+import { SuratModule } from './surat/surat.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { RolesGuard } from './auth/guards/roles.guard';
+import { APP_GUARD } from '@nestjs/core/constants';
 
 @Module({
   imports: [
@@ -33,10 +38,23 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     }),
     EventEmitterModule.forRoot(),
     UsersModule,
-    AuthModule,
     AparatModule,
+    ApiKeyModule, 
+    AuthModule, 
+    SuratModule
+
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard, // Apply globally
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard, // Apply globally after JwtAuthGuard
+    },
+  ],
 })
 export class AppModule {}
