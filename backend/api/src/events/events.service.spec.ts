@@ -3,28 +3,65 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EventsService } from './events.service';
 import { Event, EventAcknowledgment } from './entities';
-import { ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
-import { EventStatus, ProcessingStatus, EventTopic, SourceModule } from './enums';
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import {
+  EventStatus,
+  ProcessingStatus,
+  EventTopic,
+  SourceModule,
+} from './enums';
+import { RetryStrategyService } from './services/retry-strategy.service';
+import { DeadLetterQueueService } from './services/dead-letter-queue.service';
 
 describe('EventsService', () => {
   let service: EventsService;
   let eventRepository: Repository<Event>;
   let acknowledgmentRepository: Repository<EventAcknowledgment>;
+  let retryStrategy: RetryStrategyService;
+  let dlqService: DeadLetterQueueService;
 
-  // Mock repositories
+  // ✅ Mock repositories
   const mockEventRepository = {
     findOne: jest.fn(),
     find: jest.fn(),
     create: jest.fn(),
     save: jest.fn(),
     count: jest.fn(),
-    createQueryBuilder: jest.fn(),
+    createQueryBuilder: jest.fn(() => ({
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+    })),
   };
 
   const mockAcknowledgmentRepository = {
     findOne: jest.fn(),
     create: jest.fn(),
     save: jest.fn(),
+  };
+
+  // ✅ ADD: Mock RetryStrategyService
+  const mockRetryStrategy = {
+    shouldRetry: jest.fn(),
+    calculateNextRetryTime: jest.fn(),
+    getRetryDelay: jest.fn(),
+  };
+
+  // ✅ ADD: Mock DeadLetterQueueService
+  const mockDlqService = {
+    moveToDeadLetterQueue: jest.fn(),
+    getStats: jest.fn().mockResolvedValue({
+      total_events: 0,
+      by_topic: {},
+      by_source_module: {},
+    }),
   };
 
   beforeEach(async () => {
@@ -39,6 +76,16 @@ describe('EventsService', () => {
           provide: getRepositoryToken(EventAcknowledgment),
           useValue: mockAcknowledgmentRepository,
         },
+        // ✅ ADD: Provide RetryStrategyService mock
+        {
+          provide: RetryStrategyService,
+          useValue: mockRetryStrategy,
+        },
+        // ✅ ADD: Provide DeadLetterQueueService mock
+        {
+          provide: DeadLetterQueueService,
+          useValue: mockDlqService,
+        },
       ],
     }).compile();
 
@@ -47,6 +94,8 @@ describe('EventsService', () => {
     acknowledgmentRepository = module.get<Repository<EventAcknowledgment>>(
       getRepositoryToken(EventAcknowledgment),
     );
+    retryStrategy = module.get<RetryStrategyService>(RetryStrategyService);
+    dlqService = module.get<DeadLetterQueueService>(DeadLetterQueueService);
 
     // Clear all mocks before each test
     jest.clearAllMocks();
@@ -69,7 +118,12 @@ describe('EventsService', () => {
         id: 'uuid-123',
         ...createEventDto,
         status: EventStatus.PENDING,
-        timestamp: new Date(),
+        retry_count: 0,
+        max_retries: 5,
+        next_retry_at: null,
+        last_retry_at: null,
+        error_history: [],
+        created_at: new Date(), // ✅ FIXED: was 'timestamp'
       };
 
       mockEventRepository.findOne.mockResolvedValue(null); // No duplicate
@@ -84,7 +138,11 @@ describe('EventsService', () => {
       expect(mockEventRepository.create).toHaveBeenCalledWith({
         ...createEventDto,
         status: EventStatus.PENDING,
-        timestamp: expect.any(Date),
+        retry_count: 0,
+        max_retries: 5,
+        next_retry_at: null,
+        last_retry_at: null,
+        error_history: [],
       });
       expect(result).toEqual(mockEvent);
     });
@@ -92,7 +150,9 @@ describe('EventsService', () => {
     it('should throw ConflictException if idempotency_key exists', async () => {
       mockEventRepository.findOne.mockResolvedValue({ id: 'existing-uuid' });
 
-      await expect(service.publishEvent(createEventDto)).rejects.toThrow(ConflictException);
+      await expect(service.publishEvent(createEventDto)).rejects.toThrow(
+        ConflictException,
+      );
       expect(mockEventRepository.save).not.toHaveBeenCalled();
     });
   });
@@ -121,7 +181,7 @@ describe('EventsService', () => {
       mockAcknowledgmentRepository.save.mockResolvedValue(mockAck);
       mockEventRepository.save.mockResolvedValue({
         ...mockEvent,
-        status: EventStatus.CONSUMED,
+        status: EventStatus.PROCESSED, // ✅ FIXED: was CONSUMED
       });
 
       const result = await service.acknowledgeEvent(acknowledgeDto);
@@ -129,33 +189,41 @@ describe('EventsService', () => {
       expect(result).toEqual(mockAck);
       expect(mockEventRepository.save).toHaveBeenCalledWith({
         ...mockEvent,
-        status: EventStatus.CONSUMED,
+        status: EventStatus.PROCESSED,
       });
     });
 
     it('should throw NotFoundException if event not found', async () => {
       mockEventRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.acknowledgeEvent(acknowledgeDto)).rejects.toThrow(NotFoundException);
+      await expect(service.acknowledgeEvent(acknowledgeDto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw ConflictException if already acknowledged', async () => {
       mockEventRepository.findOne.mockResolvedValue({ id: 'event-uuid-123' });
-      mockAcknowledgmentRepository.findOne.mockResolvedValue({ id: 'existing-ack' });
+      mockAcknowledgmentRepository.findOne.mockResolvedValue({
+        id: 'existing-ack',
+      });
 
-      await expect(service.acknowledgeEvent(acknowledgeDto)).rejects.toThrow(ConflictException);
+      await expect(service.acknowledgeEvent(acknowledgeDto)).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should throw BadRequestException if status=failed but no error_message', async () => {
       const failedDto = {
         ...acknowledgeDto,
-        processing_status: ProcessingStatus.FAILED,
+        processing_status: ProcessingStatus.FAILURE,
       };
 
       mockEventRepository.findOne.mockResolvedValue({ id: 'event-uuid-123' });
       mockAcknowledgmentRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.acknowledgeEvent(failedDto)).rejects.toThrow(BadRequestException);
+      await expect(service.acknowledgeEvent(failedDto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -181,7 +249,9 @@ describe('EventsService', () => {
     it('should throw NotFoundException if event not found', async () => {
       mockEventRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findOne('invalid-uuid')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('invalid-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -199,7 +269,7 @@ describe('EventsService', () => {
       expect(result).toEqual(mockEvents);
       expect(mockEventRepository.find).toHaveBeenCalledWith({
         where: { status: EventStatus.PENDING },
-        order: { timestamp: 'ASC' },
+        order: { created_at: 'ASC' }, 
       });
     });
   });
@@ -208,8 +278,8 @@ describe('EventsService', () => {
     it('should return event statistics', async () => {
       mockEventRepository.count
         .mockResolvedValueOnce(10) // total
-        .mockResolvedValueOnce(3)  // pending
-        .mockResolvedValueOnce(6)  // consumed
+        .mockResolvedValueOnce(3) // pending
+        .mockResolvedValueOnce(6) // processed
         .mockResolvedValueOnce(1); // failed
 
       const result = await service.getStatistics();
@@ -217,7 +287,7 @@ describe('EventsService', () => {
       expect(result).toEqual({
         total: 10,
         pending: 3,
-        consumed: 6,
+        processed: 6, // ✅ FIXED: was 'PROCESSED' (uppercase)
         failed: 1,
         success_rate: '60.00%',
       });

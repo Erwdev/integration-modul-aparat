@@ -1,2 +1,2 @@
 export * from './event.entity';
-export * from './event-acknowledgement.entity';
+export * from './event-acknowledgment.entity';

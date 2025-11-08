@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { IsNotEmpty, IsEnum, IsJSON, Length } from 'class-validator';
 import { EventTopic, EventStatus, SourceModule } from '../enums';
-import { EventAcknowledgment } from './event-acknowledgement.entity';
+import { EventAcknowledgment } from './event-acknowledgment.entity';
 
 /**
  * Event Entity
@@ -35,7 +35,7 @@ export class Event {
     nullable: false,
   })
   @Index()
-  @IsEnum(EventTopic, { message: 'Topix harus salah satu dari EventTopic' })
+  @IsEnum(EventTopic, { message: 'Topic harus salah satu dari EventTopic' })
   @IsNotEmpty({ message: 'Topik tidak boleh kosong' })
   topic: EventTopic;
 
@@ -72,7 +72,7 @@ export class Event {
   @IsEnum(SourceModule, {
     message: 'Source Module hari berasal dari SourceModule enum',
   })
-  @IsNotEmpty({ message: 'Source module tidak boleh kosongg' })
+  @IsNotEmpty({ message: 'Source module tidak boleh kosong' })
   source_module: SourceModule;
 
   @Column({
@@ -110,6 +110,41 @@ export class Event {
     type: 'timestamptz',
   })
   created_at: Date;
+
+  //below is for retry mechanism
+
+  @Column({ type:'int', default: 0})
+  retry_count: number;
+
+  @Column({ type:'int', default: 5})
+  max_retries: number;//maximum retry attempts
+  
+  @Column({ type:'timestamp',nullable: true})
+  next_retry_at: Date | null;
+  
+  @Column({ type:'timestamp',nullable: true})
+  last_retry_at: Date | null;
+  
+  @Column({ type:'text',nullable: true})
+  last_error: string | null;
+
+  @Column({ type:'jsonb',nullable: true})
+  error_history: Array<{
+    timestamp: Date;
+    error: string;
+    retry_count: number;
+  }> | null
+
+
+  //below is for dead letter queue (DLQ) handling
+  @Column({ type: 'timestamp', nullable: true })
+  moved_to_dlq_at: Date | null; // When event was moved to DLQ
+
+  @Column({ type: 'text', nullable: true })
+  dlq_reason: string | null; // Why event was moved to DLQ
+
+  @Column({ type: 'boolean', default: false })
+  is_dlq: boolean; // Flag to identify DLQ events
 
 
   /**

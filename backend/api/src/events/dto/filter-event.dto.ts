@@ -33,4 +33,8 @@ export class FilterEventsDto {
   @Type(() => Number)
   @IsOptional()
   limit?: number = 20;
+
+  @IsOptional()
+  @IsDateString()
+  since?: string; 
 }
