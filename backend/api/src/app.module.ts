@@ -5,12 +5,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ApiKeyModule } from './auth/api-key/api-key.module';
-import { AuthModule } from './auth/auth.module'; // ✅ tambahkan ini
+import { AuthModule } from './auth/auth.module'; 
+import { SuratModule } from './surat/surat.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core/constants';
 import { EventsModule } from './events/events.module';
-
 
 @Module({
   imports: [
@@ -36,8 +36,10 @@ import { EventsModule } from './events/events.module';
     }),
 
     UsersModule,
-    ApiKeyModule, // ✅ module barumu di sini
-    AuthModule, EventsModule, // ✅ masukkan AuthModule di sini
+    ApiKeyModule, 
+    AuthModule, EventsModule, 
+    SuratModule
+
   ],
   controllers: [AppController],
   providers: [
