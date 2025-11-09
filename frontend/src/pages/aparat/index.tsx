@@ -21,12 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-export interface Aparat {
-  nama: string;
-  jabatan: string;
-  nip: string;
-  status: string;
-}
+import type { Aparat } from '@/types/aparat';
 
 const AparatPage = () => {
   const { toast } = useToast();
@@ -52,33 +47,99 @@ const AparatPage = () => {
 
   // Data
   const aparatData: Aparat[] = [
-    { nama: "Kevin Adelia", jabatan: "Kepala Keluarga", nip: "19870123", status: "Aktif" },
-    { nama: "Garrett Hill", jabatan: "Kaur Keuangan", nip: "19890112", status: "Nonaktif" },
-    { nama: "Ilham Pratama", jabatan: "Kasi Pelayanan", nip: "19900315", status: "Aktif" },
-    { nama: "Kevin Sitanggang", jabatan: "Kaur Umum", nip: "19850607", status: "Aktif" },
-    { nama: "John Doe", jabatan: "Kepala Desa", nip: "19820405", status: "Aktif" },
-    { nama: "Jane Smith", jabatan: "Kaur TU", nip: "19880909", status: "Nonaktif" },
-    { nama: "Bob Johnson", jabatan: "Kasi Kesra", nip: "19910203", status: "Aktif" },
-    { nama: "Alice Brown", jabatan: "Kasi Pemerintahan", nip: "19900708", status: "Aktif" },
-    { nama: "Michael Wilson", jabatan: "Kasi Kesejahteraan", nip: "19850415", status: "Aktif" },
-    { nama: "Sarah Davis", jabatan: "Staff Administrasi", nip: "19920617", status: "Aktif" },
-    { nama: "David Martinez", jabatan: "Staff Keuangan", nip: "19880304", status: "Nonaktif" },
-    { nama: "Emily Taylor", jabatan: "Staff Pelayanan", nip: "19900829", status: "Aktif" },
-    { nama: "James Anderson", jabatan: "Kepala Urusan", nip: "19870712", status: "Aktif" },
-    { nama: "Linda Thomas", jabatan: "Staff TU", nip: "19891124", status: "Nonaktif" },
-    { nama: "Robert White", jabatan: "Staff Kesra", nip: "19930506", status: "Aktif" },
-    { nama: "Patricia Moore", jabatan: "Staff Pemerintahan", nip: "19910918", status: "Aktif" },
-    { nama: "Joseph Lee", jabatan: "Kaur Perencanaan", nip: "19880731", status: "Aktif" },
-    { nama: "Margaret Clark", jabatan: "Staff Perencanaan", nip: "19900203", status: "Nonaktif" },
-    { nama: "Thomas Walker", jabatan: "Staff Umum", nip: "19920425", status: "Aktif" },
-    { nama: "Sandra Hall", jabatan: "Staff Keuangan", nip: "19891007", status: "Aktif" },
-    { nama: "Daniel Young", jabatan: "Staff Pelayanan", nip: "19930619", status: "Nonaktif" },
-    { nama: "Nancy King", jabatan: "Staff Administrasi", nip: "19900112", status: "Aktif" },
-    { nama: "Christopher Wright", jabatan: "Staff TU", nip: "19880845", status: "Aktif" },
-    { nama: "Betty Lopez", jabatan: "Staff Kesra", nip: "19910327", status: "Aktif" },
-    { nama: "George Hill", jabatan: "Staff Pemerintahan", nip: "19920709", status: "Nonaktif" },
-    { nama: "George Hass", jabatan: "Staff Pemerintahan", nip: "19920009", status: "Nonaktif" }
-  ]
+    {
+      id: "1",
+      nomorUrut: 1,
+      nama: "John Doe",
+      nip: "19820405",
+      jenisKelamin: "L",
+      tempatLahir: "Jakarta",
+      tanggalLahir: "1982-04-05",
+      agama: "Islam",
+      pangkatGolongan: "III/a",
+      jabatan: "Kepala Desa",
+      pendidikanTerakhir: "S1 Administrasi Publik",
+      skPengangkatan: {
+        nomor: "821.2/001/2020",
+        tanggal: "2020-01-01"
+      },
+      status: "Aktif"
+    },
+    {
+      id: "2",
+      nomorUrut: 2,
+      nama: "Jane Smith",
+      nip: "19880909",
+      jenisKelamin: "P",
+      tempatLahir: "Bandung",
+      tanggalLahir: "1988-09-09",
+      agama: "Islam",
+      pangkatGolongan: "II/c",
+      jabatan: "Kaur TU",
+      pendidikanTerakhir: "D3 Manajemen",
+      skPengangkatan: {
+        nomor: "821.2/002/2020",
+        tanggal: "2020-01-02"
+      },
+      skPemberhentian: {
+        nomor: "821.2/045/2023",
+        tanggal: "2023-12-31"
+      },
+      status: "Nonaktif"
+    },
+    {
+      id: "3",
+      nomorUrut: 3,
+      nama: "Ilham Pratama",
+      nip: "19900315",
+      jenisKelamin: "L",
+      tempatLahir: "Surabaya",
+      tanggalLahir: "1990-03-15",
+      agama: "Islam",
+      jabatan: "Kasi Pelayanan",
+      pendidikanTerakhir: "S1 Ilmu Pemerintahan",
+      skPengangkatan: {
+        nomor: "821.2/003/2020",
+        tanggal: "2020-01-03"
+      },
+      status: "Aktif"
+    },
+    {
+      id: "4",
+      nomorUrut: 4,
+      nama: "Sarah Davis",
+      nip: "19920617",
+      jenisKelamin: "P",
+      tempatLahir: "Medan",
+      tanggalLahir: "1992-06-17",
+      agama: "Kristen",
+      jabatan: "Staff Administrasi",
+      pendidikanTerakhir: "S1 Administrasi",
+      skPengangkatan: {
+        nomor: "821.2/004/2020",
+        tanggal: "2020-01-04"
+      },
+      status: "Aktif",
+      keterangan: "Penghargaan Pegawai Teladan 2022"
+    },
+    {
+      id: "5",
+      nomorUrut: 5,
+      nama: "Kevin Adelia",
+      nip: "19870123",
+      jenisKelamin: "L",
+      tempatLahir: "Semarang",
+      tanggalLahir: "1987-01-23",
+      agama: "Islam",
+      jabatan: "Kepala Urusan Keuangan",
+      pendidikanTerakhir: "S1 Akuntansi",
+      skPengangkatan: {
+        nomor: "821.2/005/2020",
+        tanggal: "2020-01-05"
+      },
+      status: "Aktif"
+    }
+  ];
 
   const handleAddAparat = (newData: AparatFormData) => {
     // TODO: Implement add aparat functionality with API call
@@ -138,11 +199,11 @@ const AparatPage = () => {
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <Sidebar activeMenu="aparat" />
 
-      <main className="flex-1 p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Daftar Aparat</h2>
+      <main className="flex-1 p-4 md:p-6 lg:p-8 transition-all duration-300">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h2 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">Daftar Aparat</h2>
           <Button 
-            className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white"
+            className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white w-full sm:w-auto text-sm md:text-base"
             onClick={() => setIsAddModalOpen(true)}
           >
             + Tambah Aparat
@@ -156,11 +217,11 @@ const AparatPage = () => {
         />
 
         {/* Search and Filter */}
-        <div className="flex justify-between items-center mb-4 gap-4">
-          <div className="flex gap-4 flex-1">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
             <Input 
               placeholder="Cari Aparat..." 
-              className="w-1/3 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" 
+              className="w-full sm:w-80 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" 
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -168,7 +229,7 @@ const AparatPage = () => {
               }}
             />
             <select
-              className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
+              className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white w-full sm:w-auto"
               value={filterStatus}
               onChange={(e) => {
                 setFilterStatus(e.target.value);
@@ -180,8 +241,8 @@ const AparatPage = () => {
               <option value="Nonaktif">Nonaktif</option>
             </select>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Tampilkan:</span>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">Tampilkan:</span>
             <select
               className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
               value={itemsPerPage}

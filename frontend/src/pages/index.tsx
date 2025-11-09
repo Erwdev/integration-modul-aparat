@@ -78,17 +78,17 @@ export default function Home() {
 
       {/* Hero Section */}
       <main className="pt-24">
-        <section className="container mx-auto px-4 py-16 md:py-24">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className={`space-y-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-              <h1 className="text-6xl font-bold text-gray-900 dark:text-white leading-tight tracking-tight">
+        <section className="container mx-auto px-4 py-8 md:py-16 lg:py-24">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div className={`space-y-6 md:space-y-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight tracking-tight">
                 Sistem Manajemen
                 <span ref={scrambleTextRef} className="text-indigo-600 dark:text-indigo-300 block mt-2">Data Aparat</span>
               </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-200 leading-relaxed max-w-2xl">
+              <p className="text-lg md:text-xl text-gray-600 dark:text-gray-200 leading-relaxed max-w-2xl">
                 Platform terpadu untuk mengelola data aparat pemerintahan dengan efisien dan terstruktur.
               </p>
-              <div className="flex space-x-4 pt-6">
+              <div className="flex flex-col sm:flex-row gap-4 sm:space-x-4 pt-6">
                 <Link href="/auth/sign-in" className="group">
                   <Button variant="outline" 
                     className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-lg transform transition-all duration-200 hover:scale-105" 
@@ -137,8 +137,8 @@ export default function Home() {
         <section className="bg-white dark:bg-gray-900 py-20 transition-colors relative overflow-hidden">
           <div className="absolute inset-0 bg-indigo-50 dark:bg-indigo-950/30 opacity-50"></div>
           <div className="container mx-auto px-4 relative">
-            <div className="grid grid-cols-3 gap-8 text-center">
-              <div className={`group p-8 bg-white/50 dark:bg-gray-800/50 rounded-2xl backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700/50 transition-all duration-700 delay-300 transform hover:scale-105 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 text-center">
+              <div className={`group p-4 md:p-8 bg-white/50 dark:bg-gray-800/50 rounded-2xl backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700/50 transition-all duration-700 delay-300 transform hover:scale-105 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <div className="text-5xl font-bold text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
                   <CountUp
                     start={0}
