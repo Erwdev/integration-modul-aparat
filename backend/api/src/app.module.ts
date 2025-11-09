@@ -5,13 +5,13 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ApiKeyModule } from './auth/api-key/api-key.module';
-import { AuthModule } from './auth/auth.module'; // ✅ tambahkan ini
+import { AuthModule } from './auth/auth.module'; 
+import { SuratModule } from './surat/surat.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core/constants';
 import { EkspedisiModule } from './ekspedisi/ekspedisi.module';
-
-
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -29,17 +29,19 @@ import { EkspedisiModule } from './ekspedisi/ekspedisi.module';
         username: configService.get<string>('POSTGRES_USER'),
         password: configService.get<string>('POSTGRES_PASSWORD'),
         database: configService.get<string>('POSTGRES_DB'),
-        synchronize: configService.get<boolean>('DB_SYNCHRONIZE', false),
+        synchronize: false,
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        logging: configService.get<boolean>('DB_LOGGING', false),
+        logging: process.env.NODE_ENV === 'development',
       }),
       inject: [ConfigService],
     }),
 
     UsersModule,
     ApiKeyModule, 
-    AuthModule, 
     EkspedisiModule,
+    AuthModule, EventsModule, 
+    SuratModule
+
   ],
   controllers: [AppController],
   providers: [
