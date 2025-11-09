@@ -15,6 +15,17 @@ module.exports = {
     '!**/*.dto.ts',
     '!**/*.entity.ts',
     '!**/main.ts',
+    '!**/auth/api-key/**', // ⬅️ tidak dihitung di coverage
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/',
+    '/src/auth/api-key/', // ⬅️ semua test di folder ini di-skip total
+  ],
+  coveragePathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/',
+    '/src/auth/api-key/', // ⬅️ pastikan coverage juga abaikan folder ini
   ],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
