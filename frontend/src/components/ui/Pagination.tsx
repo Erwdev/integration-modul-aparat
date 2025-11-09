@@ -39,6 +39,7 @@ const Pagination = ({
             variant={currentPage === page ? "default" : "outline"}
             size="sm"
             onClick={() => onPageChange(page)}
+            className={currentPage === page ? "bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600" : ""}
           >
             {page}
           </Button>

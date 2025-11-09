@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useTheme } from "@/context/ThemeContext"
 import Sidebar from "@/components/layout/Sidebar"
 import AparatTable from "@/features/aparat/components/AparatTable"
 import AddAparatModal from "@/features/aparat/components/AddAparatModal"
@@ -39,6 +40,15 @@ const AparatPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedAparat, setSelectedAparat] = useState<Aparat | null>(null);
+
+  const { isDarkMode } = useTheme();
+
+  useEffect(() => {
+    // Apply dark mode class to body for full-page dark mode
+    document.body.className = isDarkMode
+      ? 'bg-gray-900 text-gray-100' 
+      : 'bg-gray-50 text-gray-900';
+  }, [isDarkMode]); // Update when dark mode changes
 
   // Data
   const aparatData: Aparat[] = [
@@ -125,14 +135,14 @@ const AparatPage = () => {
   const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <Sidebar activeMenu="aparat" />
 
       <main className="flex-1 p-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold">Daftar Aparat</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Daftar Aparat</h2>
           <Button 
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white"
             onClick={() => setIsAddModalOpen(true)}
           >
             + Tambah Aparat
@@ -150,7 +160,7 @@ const AparatPage = () => {
           <div className="flex gap-4 flex-1">
             <Input 
               placeholder="Cari Aparat..." 
-              className="w-1/3" 
+              className="w-1/3 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" 
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -158,7 +168,7 @@ const AparatPage = () => {
               }}
             />
             <select
-              className="px-3 py-2 border rounded-md"
+              className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
               value={filterStatus}
               onChange={(e) => {
                 setFilterStatus(e.target.value);
@@ -171,9 +181,9 @@ const AparatPage = () => {
             </select>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Tampilkan:</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Tampilkan:</span>
             <select
-              className="px-3 py-2 border rounded-md"
+              className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
               value={itemsPerPage}
               onChange={(e) => {
                 setItemsPerPage(Number(e.target.value));
@@ -185,7 +195,7 @@ const AparatPage = () => {
               <option value="20">20</option>
               <option value="50">50</option>
             </select>
-            <span className="text-sm text-gray-600">data</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">data</span>
           </div>
         </div>
 
@@ -205,19 +215,21 @@ const AparatPage = () => {
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <AlertDialogHeader>
-              <AlertDialogTitle>Hapus Aparat</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="text-gray-900 dark:text-white">Hapus Aparat</AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
                 Apakah Anda yakin ingin menghapus data aparat {selectedAparat?.nama}? 
                 Tindakan ini tidak dapat dibatalkan.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogCancel className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600">
+                Batal
+              </AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => selectedAparat && handleDeleteAparat(selectedAparat)}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white"
               >
                 Hapus
               </AlertDialogAction>
@@ -237,6 +249,6 @@ const AparatPage = () => {
       <Toaster />
     </div>
   );
-}
+};
 
-export default AparatPage
+export default AparatPage;

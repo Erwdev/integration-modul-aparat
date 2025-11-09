@@ -99,10 +99,18 @@ const AddAparatModal = ({ isOpen, onClose, onSubmit }: AddAparatModalProps) => {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button 
+            variant="outline" 
+            onClick={onClose}
+            className="border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
             Batal
           </Button>
-          <Button type="submit" onClick={handleSubmit}>
+          <Button 
+            type="submit" 
+            onClick={handleSubmit}
+            className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+          >
             Simpan
           </Button>
         </DialogFooter>
