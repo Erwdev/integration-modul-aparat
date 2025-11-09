@@ -10,10 +10,20 @@
     "@nestjs/jwt": "^11.0.1",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/typeorm": "^11.0.0",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "autoprefixer": "^10.4.21",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "next": "^16.0.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
-    "typeorm": "^0.3.27"
+    "postcss": "^8.5.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwindcss": "^4.1.17",
+    "typeorm": "^0.3.27",
+    "typescript": "^5.9.3"
   }
 }
