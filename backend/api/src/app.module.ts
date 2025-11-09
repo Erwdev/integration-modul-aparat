@@ -26,6 +26,7 @@ import { EventsModule } from './events/events.module';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (cs: ConfigService) => ({
         type: 'postgres',
         host: cs.get<string>('DB_HOST', 'db'),
@@ -39,7 +40,6 @@ import { EventsModule } from './events/events.module';
         logging: process.env.NODE_ENV === 'development',
 
       }),
-      inject: [ConfigService],
     }),
     EventEmitterModule.forRoot(),
     UsersModule,
