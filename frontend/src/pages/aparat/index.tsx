@@ -4,10 +4,23 @@ import { useState } from "react"
 import Sidebar from "@/components/layout/Sidebar"
 import AparatTable from "@/features/aparat/components/AparatTable"
 import AddAparatModal from "@/features/aparat/components/AddAparatModal"
+import EditAparatModal from "@/features/aparat/components/EditAparatModal"
 import Pagination from "@/components/ui/Pagination"
 import type { AparatFormData } from "@/features/aparat/components/AddAparatModal"
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
-interface Aparat {
+export interface Aparat {
   nama: string;
   jabatan: string;
   nip: string;
@@ -15,16 +28,21 @@ interface Aparat {
 }
 
 const AparatPage = () => {
+  const { toast } = useToast();
+
   // State management
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedAparat, setSelectedAparat] = useState<Aparat | null>(null);
 
   // Data
   const aparatData: Aparat[] = [
-    { nama: "Reyhan Alfarel Qadavi", jabatan: "Sekretaris Desa", nip: "19870123", status: "Aktif" },
+    { nama: "Kevin Adelia", jabatan: "Kepala Keluarga", nip: "19870123", status: "Aktif" },
     { nama: "Garrett Hill", jabatan: "Kaur Keuangan", nip: "19890112", status: "Nonaktif" },
     { nama: "Ilham Pratama", jabatan: "Kasi Pelayanan", nip: "19900315", status: "Aktif" },
     { nama: "Kevin Sitanggang", jabatan: "Kaur Umum", nip: "19850607", status: "Aktif" },
@@ -48,12 +66,47 @@ const AparatPage = () => {
     { nama: "Nancy King", jabatan: "Staff Administrasi", nip: "19900112", status: "Aktif" },
     { nama: "Christopher Wright", jabatan: "Staff TU", nip: "19880845", status: "Aktif" },
     { nama: "Betty Lopez", jabatan: "Staff Kesra", nip: "19910327", status: "Aktif" },
-    { nama: "George Hill", jabatan: "Staff Pemerintahan", nip: "19920709", status: "Nonaktif" }
+    { nama: "George Hill", jabatan: "Staff Pemerintahan", nip: "19920709", status: "Nonaktif" },
+    { nama: "George Hass", jabatan: "Staff Pemerintahan", nip: "19920009", status: "Nonaktif" }
   ]
 
   const handleAddAparat = (newData: AparatFormData) => {
     // TODO: Implement add aparat functionality with API call
     console.log('New aparat data:', newData);
+    toast({
+      title: "Berhasil menambah aparat",
+      description: `Aparat ${newData.nama} telah berhasil ditambahkan.`,
+    });
+  };
+
+  const handleEditAparat = (updatedData: Aparat) => {
+    // TODO: Implement edit aparat functionality with API call
+    console.log('Updated aparat data:', updatedData);
+    toast({
+      title: "Berhasil mengubah data aparat",
+      description: `Data aparat ${updatedData.nama} telah berhasil diperbarui.`,
+    });
+    setIsEditModalOpen(false);
+  };
+
+  const handleDeleteAparat = (aparat: Aparat) => {
+    // TODO: Implement delete aparat functionality with API call
+    console.log('Deleting aparat:', aparat);
+    toast({
+      title: "Berhasil menghapus aparat",
+      description: `Aparat ${aparat.nama} telah berhasil dihapus.`,
+    });
+    setIsDeleteDialogOpen(false);
+  };
+
+  const onEdit = (aparat: Aparat) => {
+    setSelectedAparat(aparat);
+    setIsEditModalOpen(true);
+  };
+
+  const onDelete = (aparat: Aparat) => {
+    setSelectedAparat(aparat);
+    setIsDeleteDialogOpen(true);
   };
 
   // Filtering
@@ -136,7 +189,41 @@ const AparatPage = () => {
           </div>
         </div>
 
-        <AparatTable data={paginatedData} />
+        <AparatTable 
+          data={paginatedData}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+
+        {/* Edit Modal */}
+        <EditAparatModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSubmit={handleEditAparat}
+          aparat={selectedAparat}
+        />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hapus Aparat</AlertDialogTitle>
+              <AlertDialogDescription>
+                Apakah Anda yakin ingin menghapus data aparat {selectedAparat?.nama}? 
+                Tindakan ini tidak dapat dibatalkan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => selectedAparat && handleDeleteAparat(selectedAparat)}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Hapus
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <Pagination
           currentPage={currentPage}
@@ -147,6 +234,7 @@ const AparatPage = () => {
           onPageChange={setCurrentPage}
         />
       </main>
+      <Toaster />
     </div>
   );
 }

@@ -13,10 +13,10 @@ const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
             Aparat
           </li>
           <li className={`${activeMenu === 'ekspedisi' ? 'text-blue-600 font-semibold bg-blue-50' : 'text-gray-600 hover:text-blue-500'} px-2 py-1 rounded-md cursor-pointer`}>
-            Ekspedisi
+            
           </li>
           <li className={`${activeMenu === 'surat' ? 'text-blue-600 font-semibold bg-blue-50' : 'text-gray-600 hover:text-blue-500'} px-2 py-1 rounded-md cursor-pointer`}>
-            Surat
+            
           </li>
         </ul>
       </nav>

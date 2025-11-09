@@ -11,9 +11,11 @@ interface Aparat {
 
 interface AparatTableProps {
   data: Aparat[];
+  onEdit: (aparat: Aparat) => void;
+  onDelete: (aparat: Aparat) => void;
 }
 
-const AparatTable = ({ data }: AparatTableProps) => {
+const AparatTable = ({ data, onEdit, onDelete }: AparatTableProps) => {
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
       <Table>
@@ -44,13 +46,27 @@ const AparatTable = ({ data }: AparatTableProps) => {
                 </span>
               </TableCell>
               <TableCell className="text-right space-x-2">
-                <Button size="icon" variant="ghost">
+                <Button 
+                  size="icon" 
+                  variant="ghost"
+                  onClick={() => onEdit(aparat)}
+                  title="Edit Aparat"
+                >
                   <Edit2 className="w-4 h-4 text-blue-600" />
                 </Button>
-                <Button size="icon" variant="ghost">
+                <Button 
+                  size="icon" 
+                  variant="ghost"
+                  onClick={() => onDelete(aparat)}
+                  title="Hapus Aparat"
+                >
                   <Trash2 className="w-4 h-4 text-red-600" />
                 </Button>
-                <Button size="icon" variant="ghost">
+                <Button 
+                  size="icon" 
+                  variant="ghost"
+                  title="Lihat Detail"
+                >
                   <Eye className="w-4 h-4 text-gray-600" />
                 </Button>
               </TableCell>
