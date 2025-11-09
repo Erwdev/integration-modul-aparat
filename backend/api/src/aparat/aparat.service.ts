@@ -220,11 +220,11 @@ export class AparatService {
    */
   async update(id: string, dto: UpdateAparatDto) {
     try {
-      // ✅ 1. Validate uniqueness (bisa throw ConflictException)
-      await this.ensureUniqueNikNip(dto.nik, dto.nip, id);
-      
-      // ✅ 2. Get existing data
+      // ✅ 1. Get existing data first (to check if exists)
       const item = await this.findOne(id);
+      
+      // ✅ 2. Validate uniqueness (bisa throw ConflictException)
+      await this.ensureUniqueNikNip(dto.nik, dto.nip, id);
       
       // ✅ 3. Store old values before update
       const oldValues = {

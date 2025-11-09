@@ -24,6 +24,13 @@ build/
 .docker/
 docker-compose.override.yml
 
+
+# Secrets
+secrets.txt
+secrets*.txt
+*.secrets
+.secrets
+
 # IDE - VSCode
 .vscode/*
 !.vscode/settings.json

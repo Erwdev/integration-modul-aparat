@@ -93,8 +93,8 @@ describe('AparatService', () => {
     eventsService = module.get<EventsService>(EventsService);
     eventEmitter = module.get<EventEmitter2>(EventEmitter2);
 
-    // ✅ Reset QueryBuilder mock
-    mockRepository.createQueryBuilder.mockReturnValue(createMockQueryBuilder());
+    // ✅ Reset QueryBuilder mock - create new instance each time
+    mockRepository.createQueryBuilder.mockImplementation(() => createMockQueryBuilder());
   });
 
   afterEach(() => {
@@ -453,10 +453,11 @@ describe('AparatService', () => {
           topic: EventTopic.APARAT_UPDATED,
           payload: expect.objectContaining({
             id: mockAparat.id_aparat,
+
             changes: dto,
             oldValues: expect.objectContaining({
-              nama: mockAparat.nama,
-              jabatan: mockAparat.jabatan,
+              nama: 'John Doe', // ✅ Original value
+              jabatan: 'Kepala Desa', // ✅ Original value
             }),
           }),
         }),
@@ -491,13 +492,17 @@ describe('AparatService', () => {
         nip: '196801011990031002',
       };
 
-      mockRepository.findOne.mockResolvedValue(mockAparat);
+      // ✅ Make sure findOne returns a fresh copy
+      mockRepository.findOne.mockResolvedValue({ ...mockAparat });
 
       const qb = createMockQueryBuilder();
-      qb.getOne
-        .mockResolvedValueOnce(null) // NIK check (no NIK in dto)
-        .mockResolvedValueOnce({ ...mockAparat, id_aparat: 'another-id' }); // NIP exists
-      mockRepository.createQueryBuilder.mockReturnValue(qb);
+      // ✅ Only NIP check happens (no NIK in dto), and it finds existing NIP with different ID
+      qb.getOne.mockResolvedValue({ 
+        ...mockAparat, 
+        id_aparat: 'another-id',
+        nip: '196801011990031002' // This NIP already exists
+      });
+      mockRepository.createQueryBuilder.mockImplementation(() => qb);
 
       await expect(
         service.update(mockAparat.id_aparat as string, dto as any),
@@ -753,11 +758,11 @@ describe('AparatService', () => {
       const dto = { nama: 'Updated Name', jabatan: 'New Jabatan' };
       const updated = { ...mockAparat, ...dto, version: 2 };
 
-      mockRepository.findOne.mockResolvedValue(mockAparat);
+      mockRepository.findOne.mockResolvedValue({ ...mockAparat });
 
       const qb = createMockQueryBuilder();
       qb.getOne.mockResolvedValue(null);
-      mockRepository.createQueryBuilder.mockReturnValue(qb);
+      mockRepository.createQueryBuilder.mockImplementation(() => qb);
 
       mockRepository.save.mockResolvedValue(updated);
 
@@ -769,8 +774,8 @@ describe('AparatService', () => {
           payload: expect.objectContaining({
             changes: dto,
             oldValues: expect.objectContaining({
-              nama: mockAparat.nama,
-              jabatan: mockAparat.jabatan,
+              nama: 'John Doe', // ✅ Original value
+              jabatan: 'Kepala Desa', // ✅ Original value
             }),
           }),
         }),

@@ -1,29 +1,92 @@
-services:
-  backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: aparat-backend
-    volumes:
-      - ./backend/api:/app/api
-      - /app/api/node_modules
-    env_file:
-      - .env
-    ports:
-      - "${PORT}:${PORT}"
-    command: npm run start:dev
-    depends_on:
-      - db
+version: '3.8'
 
+services:
   db:
-    image: postgres:15
+    image: postgres:16-alpine
     container_name: aparat-db
-    env_file:
-      - .env
-    ports:
-      - "5432:5432"
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-aparat}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - db_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aparat-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: aparat-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3000}
+      BASE_URL: ${BASE_URL:-http://localhost:3000}
+      
+      # Database
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_DATABASE: ${DB_DATABASE:-aparat}
+      DATABASE_URL: postgresql://${DB_USERNAME:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_DATABASE:-aparat}
+      
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      
+      # Security
+      BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-10}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      
+      # Swagger
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+      SWAGGER_PATH: ${SWAGGER_PATH:-api-docs}
+      
+      # API Keys
+      API_KEY: ${API_KEY}
+      
+      # Upload
+      UPLOAD_DIR: ${UPLOAD_DIR:-./uploads}
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-2097152}
+      ALLOWED_FILE_TYPES: ${ALLOWED_FILE_TYPES:-.png,.jpg,.jpeg,.pdf}
+    volumes:
+      - ./backend/api/uploads:/app/api/uploads
+      - api_logs:/app/api/logs
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - aparat-network
 
 volumes:
   db_data:
+    driver: local
+  api_logs:
+    driver: local
+
+networks:
+  aparat-network:
+    driver: bridge
