@@ -16,12 +16,12 @@ import { CreateSuratDto } from './dto/create-surat.dto';
 import { UpdateSuratDto } from './dto/update-surat.dto';
 import { UpdateStatusSuratDto } from './dto/update-status-surat.dto';
 import { QuerySuratDto } from './dto/filter-surat.dto';
-
+import { EventsService} from '../events/events.service';
 // Import DTO Response (dari Poin 3)
 import { PaginatedSuratResponseDto } from './dto/response-surat.dto';
-
 // Import Service baru
 import { NomorSuratGeneratorService } from './services/nomor-surat-generator.service';
+import { EventTopic, EventStatus, SourceModule} from 'src/events/enums';
 
 @Injectable()
 export class SuratService {
@@ -30,6 +30,7 @@ export class SuratService {
   constructor(
     @InjectRepository(Surat)
     private readonly suratRepository: Repository<Surat>,
+    private eventsService: EventsService, 
 
     // Inject service baru
     private readonly nomorSuratGeneratorService: NomorSuratGeneratorService,
@@ -56,6 +57,22 @@ export class SuratService {
       });
 
       const savedSurat = await this.suratRepository.save(surat);
+
+      await this.eventsService.publishEvent({
+      topic: EventTopic.SURAT_CREATED,
+      payload: {
+        id: savedSurat.id,
+        nomorSurat: savedSurat.nomor_surat,
+        jenisSurat: savedSurat.jenis,
+        perihal: savedSurat.perihal,
+        createdAt: savedSurat.created_at,
+      },
+      source_module: SourceModule.SURAT,
+      idempotency_key: `surat-create-${savedSurat.id}`,
+    });
+
+
+
       this.logger.log(
         `Surat created: ${savedSurat.nomor_surat} by user ${userId}`,
       );
@@ -159,6 +176,8 @@ export class SuratService {
     etag?: string,
   ): Promise<Surat> {
     const surat = await this.findOne(id);
+    const oldStatus = surat.status;
+
 
     if (etag && surat.etag !== etag) {
       this.logger.warn(`Update conflict: ETag mismatch for ID ${id}`);
@@ -180,6 +199,23 @@ export class SuratService {
     try {
       const savedSurat = await this.suratRepository.save(updatedSurat);
       this.logger.log(`Surat ${id} updated by user ${userId}`);
+
+      // ✅ Emit event SURAT_UPDATED
+      await this.eventsService.publishEvent({
+        topic: EventTopic.SURAT_UPDATED,
+        payload: {
+          id: savedSurat.id,
+          nomorSurat: savedSurat.nomor_surat,
+          changes: updateSuratDto,
+          oldStatus,
+          newStatus: savedSurat.status,
+          updatedBy: userId,
+          updatedAt: savedSurat.updated_at,
+        },
+        source_module: SourceModule.SURAT,
+        idempotency_key: `surat-update-${savedSurat.id}-${Date.now()}`,
+      });
+
       return savedSurat;
     } catch (error) {
       this.logger.error(`Failed to update surat ${id}: ${error.message}`);
@@ -196,6 +232,7 @@ export class SuratService {
     userId?: string,
   ): Promise<Surat> {
     const surat = await this.findOne(id);
+    const oldStatus = surat.status;
     const newStatus = updateStatusDto.status;
 
     if (!surat.canTransitionTo(newStatus)) {
@@ -212,6 +249,22 @@ export class SuratService {
 
     const savedSurat = await this.suratRepository.save(surat);
     this.logger.log(`Status ${id} updated to ${newStatus} by user ${userId}`);
+
+    // ✅ Emit event SURAT_STATUS_CHANGED
+    await this.eventsService.publishEvent({
+      topic: EventTopic.SURAT_STATUS_CHANGED,
+      payload: {
+        id: savedSurat.id,
+        nomorSurat: savedSurat.nomor_surat,
+        oldStatus,
+        newStatus,
+        changedBy: userId,
+        changedAt: new Date(),
+      },
+      source_module: SourceModule.SURAT,
+      idempotency_key: `surat-status-${savedSurat.id}-${newStatus}-${Date.now()}`,
+    });
+
     return savedSurat;
   }
 
@@ -238,6 +291,18 @@ export class SuratService {
       throw new NotFoundException(`Surat dengan ID ${id} tidak ditemukan`);
     }
     this.logger.log(`Surat ${id} soft deleted by user ${userId}`);
+
+    await this.eventsService.publishEvent({
+      topic: EventTopic.SURAT_DELETED,
+      payload: {
+        id: surat.id,
+        nomorSurat: surat.nomor_surat,
+        deletedBy: userId,
+        deletedAt: new Date(),
+      },
+      source_module: SourceModule.SURAT,
+      idempotency_key: `surat-delete-${surat.id}`,
+    });
   }
 
   /**

@@ -3,4 +3,6 @@ export enum StatusSurat {
   TERKIRIM = 'TERKIRIM',
   DITERIMA = 'DITERIMA',
   SELESAI = 'SELESAI',
+  DISETUJUI = 'DISETUJUI',
+  DITOLAK = 'DITOLAK',
 }

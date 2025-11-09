@@ -26,6 +26,7 @@ import { EventsModule } from './events/events.module';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (cs: ConfigService) => ({
         type: 'postgres',
         host: cs.get<string>('DB_HOST', 'db'),
@@ -37,11 +38,19 @@ import { EventsModule } from './events/events.module';
         synchronize: false,
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         logging: process.env.NODE_ENV === 'development',
-
+        ssl: cs.get('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
       }),
-      inject: [ConfigService],
     }),
-    EventEmitterModule.forRoot(),
+    EventEmitterModule.forRoot({
+      wildcard: true,
+      delimiter: '.',
+      maxListeners: 10,
+      verboseMemoryLeak: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
     UsersModule,
     AparatModule,
     ApiKeyModule, 

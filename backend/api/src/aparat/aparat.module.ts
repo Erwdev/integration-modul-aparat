@@ -3,12 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Aparat } from './entities/aparat.entity';
 import { AparatService } from './aparat.service';
 import { AparatController } from './aparat.controller';
-import { EventEmitterModule } from '@nestjs/event-emitter';
+import { EventsModule } from '../events/events.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Aparat]),
-    EventEmitterModule.forRoot(),
+    EventsModule,
   ],
   controllers: [AparatController],
   providers: [AparatService],

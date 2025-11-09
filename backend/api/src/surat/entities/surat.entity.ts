@@ -97,7 +97,9 @@ export class Surat {
   // Helper method untuk validasi state transition
   canTransitionTo(newStatus: StatusSurat): boolean {
     const transitions: Record<StatusSurat, StatusSurat[]> = {
-      [StatusSurat.DRAFT]: [StatusSurat.TERKIRIM],
+      [StatusSurat.DRAFT]: [StatusSurat.TERKIRIM, StatusSurat.DITOLAK],
+      [StatusSurat.DISETUJUI]: [StatusSurat.TERKIRIM, StatusSurat.DRAFT],
+      [StatusSurat.DITOLAK]: [ StatusSurat.DRAFT],
       [StatusSurat.TERKIRIM]: [StatusSurat.DITERIMA],
       [StatusSurat.DITERIMA]: [StatusSurat.SELESAI],
       [StatusSurat.SELESAI]: [],

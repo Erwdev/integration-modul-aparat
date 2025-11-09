@@ -1,30 +1,27 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateEkspedisiDto } from './create-ekspedisi.dto';
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 import { StatusEkspedisi } from '../enums/status-ekspedisi.enum';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UpdateEkspedisiDto extends PartialType(CreateEkspedisiDto) {
+export class UpdateStatusDto {
   @ApiProperty({
-    description: 'Status ekspedisi',
+    description: 'Status baru ekspedisi',
     enum: StatusEkspedisi,
     example: StatusEkspedisi.TERKIRIM,
-    required: false,
+    required: true,
   })
-  @IsOptional()
   @IsEnum(StatusEkspedisi, {
     message: 'Status harus salah satu dari: DALAM_PERJALANAN, TERKIRIM, GAGAL, DIKEMBALIKAN',
   })
-  status?: StatusEkspedisi;
+  status: StatusEkspedisi;
 
   @ApiProperty({
-    description: 'Catatan tambahan untuk tracking ekspedisi',
-    example: 'Paket sudah sampai di kantor pos tujuan',
+    description: 'Catatan perubahan status (opsional)',
+    example: 'Paket telah diterima oleh penerima langsung',
     required: false,
-    maxLength: 1000,
+    maxLength: 500,
   })
   @IsOptional()
   @IsString({ message: 'Catatan harus berupa string' })
-  @MaxLength(1000, { message: 'Catatan maksimal 1000 karakter' })
+  @MaxLength(500, { message: 'Catatan maksimal 500 karakter' })
   catatan?: string;
 }

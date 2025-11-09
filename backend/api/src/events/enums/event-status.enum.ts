@@ -13,7 +13,7 @@ export enum EventTopic {
   SURAT_STATUS_CHANGED = 'surat.statusChanged',
   SURAT_UPDATED = 'surat.updated',
   SURAT_DELETED = 'surat.deleted',
-
+  
   // ===================================
   // Modul Aparat Events
   // ===================================
@@ -29,6 +29,8 @@ export enum EventTopic {
   EKSPEDISI_STATUS_CHANGED = 'ekspedisi.statusChanged',
   EKSPEDISI_DELIVERED = 'ekspedisi.delivered',
   EKSPEDISI_RETURNED = 'ekspedisi.returned',
+  EKSPEDISI_UPDATED = 'ekspedisi.updated',
+  EKSPEDISI_DELETED = 'ekspedisi.deleted',
 
   // ===================================
   // Modul Agenda Events

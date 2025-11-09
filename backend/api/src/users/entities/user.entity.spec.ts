@@ -18,13 +18,13 @@ describe('User Entity', () => {
     });
 
     it('should have correct properties', () => {
-      user.id = 'test-id';
+      user.id = 123;
       user.username = 'testuser';
       user.password = 'hashedpassword';
       user.role = 'ADMIN';
       user.nama_lengkap = 'Test User';
 
-      expect(user.id).toBe('test-id');
+      expect(user.id).toBe(123);
       expect(user.username).toBe('testuser');
       expect(user.password).toBe('hashedpassword');
       expect(user.role).toBe('ADMIN');
