@@ -10,6 +10,7 @@ import { SuratModule } from './surat/surat.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core/constants';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -27,17 +28,18 @@ import { APP_GUARD } from '@nestjs/core/constants';
         username: configService.get<string>('POSTGRES_USER'),
         password: configService.get<string>('POSTGRES_PASSWORD'),
         database: configService.get<string>('POSTGRES_DB'),
-        synchronize: configService.get<boolean>('DB_SYNCHRONIZE', false),
+        synchronize: false,
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        logging: configService.get<boolean>('DB_LOGGING', false),
+        logging: process.env.NODE_ENV === 'development',
       }),
       inject: [ConfigService],
     }),
 
     UsersModule,
     ApiKeyModule, 
-    AuthModule, 
+    AuthModule, EventsModule, 
     SuratModule
+
   ],
   controllers: [AppController],
   providers: [
