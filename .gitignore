@@ -17,7 +17,9 @@ lerna-debug.log*
 dist/
 build/
 *.tsbuildinfo
-
+# uploads (don't commit uploaded files)
+/uploads/**/*
+!/uploads/.gitkeep
 # Docker
 .docker/
 docker-compose.override.yml

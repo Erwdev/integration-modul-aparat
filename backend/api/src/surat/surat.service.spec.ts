@@ -11,11 +11,14 @@ import { JenisSurat } from './enums/jenis-surat.enum';
 import { StatusSurat } from './enums/status-surat.enum';
 import { Repository } from 'typeorm';
 import { NomorSuratGeneratorService } from './services/nomor-surat-generator.service';
+import { EventsService } from '../events/events.service'; // ✅ Add import
+import { EventTopic } from 'src/events/enums';
 
 describe('SuratService', () => {
   let service: SuratService;
   let repository: Repository<Surat>;
-  let nomorSuratGenerator: NomorSuratGeneratorService; // Untuk tes create
+  let nomorSuratGenerator: NomorSuratGeneratorService;
+  let eventsService: EventsService; // ✅ Add this
 
   const mockSurat: Partial<Surat> = {
     id: 'test-uuid-1',
@@ -46,7 +49,7 @@ describe('SuratService', () => {
     addSelect: jest.fn().mockReturnThis(),
     groupBy: jest.fn().mockReturnThis(),
     getRawMany: jest.fn(),
-    getManyAndCount: jest.fn(), // Tambahkan ini jika findAll Anda pakai getManyAndCount
+    getManyAndCount: jest.fn(),
   });
 
   const mockRepository = {
@@ -57,12 +60,16 @@ describe('SuratService', () => {
     count: jest.fn(),
     softDelete: jest.fn(),
     createQueryBuilder: jest.fn(),
-    merge: jest.fn(), // Tambahkan mock untuk merge (digunakan di service update)
+    merge: jest.fn(),
   };
 
-  // Mock untuk service baru
   const mockNomorSuratGeneratorService = {
     generateNomorSurat: jest.fn(),
+  };
+
+  // ✅ Add EventsService mock
+  const mockEventsService = {
+    publishEvent: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -73,20 +80,24 @@ describe('SuratService', () => {
           provide: getRepositoryToken(Surat),
           useValue: mockRepository,
         },
-        // Sediakan mock untuk dependency yang baru
         {
           provide: NomorSuratGeneratorService,
           useValue: mockNomorSuratGeneratorService,
+        },
+        // ✅ Add EventsService provider
+        {
+          provide: EventsService,
+          useValue: mockEventsService,
         },
       ],
     }).compile();
 
     service = module.get<SuratService>(SuratService);
     repository = module.get<Repository<Surat>>(getRepositoryToken(Surat));
-    // Simpan instance mock service untuk digunakan di tes
     nomorSuratGenerator = module.get<NomorSuratGeneratorService>(
       NomorSuratGeneratorService,
     );
+    eventsService = module.get<EventsService>(EventsService); // ✅ Add this
   });
 
   afterEach(() => {
@@ -106,12 +117,10 @@ describe('SuratService', () => {
       };
       const expectedNomorSurat = '001/2025/01/27';
 
-      // 1. Atur mock service baru
       mockNomorSuratGeneratorService.generateNomorSurat.mockResolvedValue(
         expectedNomorSurat,
       );
 
-      // 2. Definisikan apa yang diharapkan
       const suratBaru = {
         ...mockSurat,
         ...createDto,
@@ -120,13 +129,11 @@ describe('SuratService', () => {
         created_by: 'user-1',
       };
 
-      // 3. Atur mock repository
       mockRepository.create.mockReturnValue(suratBaru);
       mockRepository.save.mockResolvedValue(suratBaru);
 
       const result = await service.create(createDto as any, 'user-1');
 
-      // 4. Verifikasi hasil
       expect(result).toEqual(suratBaru);
       expect(result.nomor_surat).toBe(expectedNomorSurat);
       expect(
@@ -141,6 +148,17 @@ describe('SuratService', () => {
         }),
       );
       expect(mockRepository.save).toHaveBeenCalledWith(suratBaru);
+
+      // ✅ Verify event was published
+      expect(mockEventsService.publishEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          topic: EventTopic.SURAT_CREATED,
+          payload: expect.objectContaining({
+            id: suratBaru.id,
+            nomorSurat: suratBaru.nomor_surat,
+          }),
+        }),
+      );
     });
 
     it('should throw ConflictException if save fails (e.g., unique constraint)', async () => {
@@ -149,11 +167,12 @@ describe('SuratService', () => {
         perihal: 'Test Surat',
         tanggal_surat: '2025-01-27',
       };
-      
-      mockNomorSuratGeneratorService.generateNomorSurat.mockResolvedValue('001/2025/01/27');
+
+      mockNomorSuratGeneratorService.generateNomorSurat.mockResolvedValue(
+        '001/2025/01/27',
+      );
       mockRepository.create.mockReturnValue(mockSurat);
-      
-      // Simulasikan error unique violation dari database
+
       mockRepository.save.mockRejectedValue({ code: '23505' });
 
       await expect(service.create(createDto as any, 'user-1')).rejects.toThrow(
@@ -193,8 +212,7 @@ describe('SuratService', () => {
       };
 
       const queryBuilder = createMockQueryBuilder();
-      // Service Anda menggunakan getManyAndCount
-      queryBuilder.getManyAndCount.mockResolvedValue([[mockSurat], 1]); 
+      queryBuilder.getManyAndCount.mockResolvedValue([[mockSurat], 1]);
 
       mockRepository.createQueryBuilder.mockReturnValue(queryBuilder as any);
 
@@ -205,7 +223,10 @@ describe('SuratService', () => {
       expect(result.meta.page).toBe(1);
       expect(queryBuilder.skip).toHaveBeenCalledWith(0);
       expect(queryBuilder.take).toHaveBeenCalledWith(20);
-      expect(queryBuilder.orderBy).toHaveBeenCalledWith('surat.created_at', 'DESC');
+      expect(queryBuilder.orderBy).toHaveBeenCalledWith(
+        'surat.created_at',
+        'DESC',
+      );
     });
 
     it('should apply jenis filter', async () => {
@@ -256,11 +277,11 @@ describe('SuratService', () => {
       const updateDto = { perihal: 'Updated Perihal' };
       const suratToUpdate = {
         ...mockSurat,
-        canBeModified: jest.fn().mockReturnValue(true), // Mock helper method
+        canBeModified: jest.fn().mockReturnValue(true),
       };
 
       mockRepository.findOne.mockResolvedValue(suratToUpdate);
-      mockRepository.merge.mockReturnValue({ ...suratToUpdate, ...updateDto }); // Mock merge
+      mockRepository.merge.mockReturnValue({ ...suratToUpdate, ...updateDto });
       mockRepository.save.mockResolvedValue({
         ...suratToUpdate,
         ...updateDto,
@@ -270,11 +291,18 @@ describe('SuratService', () => {
         'test-uuid-1',
         updateDto,
         'user-1',
-        'test-etag', // ETag cocok
+        'test-etag',
       );
 
       expect(result.perihal).toBe('Updated Perihal');
       expect(mockRepository.save).toHaveBeenCalled();
+
+      // ✅ Verify event published
+      expect(mockEventsService.publishEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          topic: EventTopic.SURAT_UPDATED,
+        }),
+      );
     });
 
     it('should throw BadRequestException if not DRAFT', async () => {
@@ -282,7 +310,7 @@ describe('SuratService', () => {
       const suratToUpdate = {
         ...mockSurat,
         status: StatusSurat.TERKIRIM,
-        canBeModified: jest.fn().mockReturnValue(false), // Mock helper method
+        canBeModified: jest.fn().mockReturnValue(false),
       };
 
       mockRepository.findOne.mockResolvedValue(suratToUpdate);
@@ -303,7 +331,7 @@ describe('SuratService', () => {
       mockRepository.findOne.mockResolvedValue(suratToUpdate);
 
       await expect(
-        service.update('test-uuid-1', updateDto, 'user-1', 'wrong-etag'), // ETag tidak cocok
+        service.update('test-uuid-1', updateDto, 'user-1', 'wrong-etag'),
       ).rejects.toThrow(ConflictException);
     });
   });
@@ -314,7 +342,7 @@ describe('SuratService', () => {
       const suratToUpdate = {
         ...mockSurat,
         status: StatusSurat.DRAFT,
-        canTransitionTo: jest.fn().mockReturnValue(true), // Mock helper
+        canTransitionTo: jest.fn().mockReturnValue(true),
       };
 
       mockRepository.findOne.mockResolvedValue(suratToUpdate);
@@ -330,6 +358,17 @@ describe('SuratService', () => {
       );
 
       expect(result.status).toBe(StatusSurat.TERKIRIM);
+
+      // ✅ Verify status change event
+      expect(mockEventsService.publishEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          topic: EventTopic.SURAT_STATUS_CHANGED,
+          payload: expect.objectContaining({
+            oldStatus: StatusSurat.DRAFT,
+            newStatus: StatusSurat.TERKIRIM,
+          }),
+        }),
+      );
     });
 
     it('should throw BadRequestException for invalid transition', async () => {
@@ -337,7 +376,7 @@ describe('SuratService', () => {
       const suratToUpdate = {
         ...mockSurat,
         status: StatusSurat.DRAFT,
-        canTransitionTo: jest.fn().mockReturnValue(false), // Mock helper
+        canTransitionTo: jest.fn().mockReturnValue(false),
       };
 
       mockRepository.findOne.mockResolvedValue(suratToUpdate);
@@ -352,11 +391,11 @@ describe('SuratService', () => {
     it('should soft delete surat when status is DRAFT', async () => {
       const suratToDelete = {
         ...mockSurat,
-        canBeDeleted: jest.fn().mockReturnValue(true), // Mock helper
+        canBeDeleted: jest.fn().mockReturnValue(true),
       };
 
       mockRepository.findOne.mockResolvedValue(suratToDelete);
-      mockRepository.save.mockResolvedValue(suratToDelete); // Untuk save updated_by
+      mockRepository.save.mockResolvedValue(suratToDelete);
       mockRepository.softDelete.mockResolvedValue({ affected: 1 } as any);
 
       await service.remove('test-uuid-1', 'user-1');
@@ -365,13 +404,20 @@ describe('SuratService', () => {
       expect(mockRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({ updated_by: 'user-1' }),
       );
+
+      // ✅ Verify delete event
+      expect(mockEventsService.publishEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          topic: EventTopic.SURAT_DELETED,
+        }),
+      );
     });
 
     it('should throw BadRequestException if not DRAFT', async () => {
       const suratToDelete = {
         ...mockSurat,
         status: StatusSurat.TERKIRIM,
-        canBeDeleted: jest.fn().mockReturnValue(false), // Mock helper
+        canBeDeleted: jest.fn().mockReturnValue(false),
       };
 
       mockRepository.findOne.mockResolvedValue(suratToDelete);

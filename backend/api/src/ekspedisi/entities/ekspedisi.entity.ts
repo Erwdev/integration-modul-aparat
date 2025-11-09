@@ -4,33 +4,35 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { StatusEkspedisi } from '../enums/status-ekspedisi.enum';
-import { JenisPengiriman } from '../enums/jenis-pengiriman.enum';
+import { Surat } from '../../surat/entities/surat.entity';
+
 
 @Entity('ekspedisi')
 export class Ekspedisi {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  // ✅ Add relation to Surat
+  @Column({ type: 'uuid', name: 'surat_id' })
   surat_id: string;
 
-  @Column({ nullable: false })
+  @ManyToOne(() => Surat, { eager: true })
+  @JoinColumn({ name: 'surat_id' })
+  surat: Surat;
+
+  @Column({ type: 'varchar', length: 255, unique: true })
+  nomor_resi: string;
+
+  @Column({ type: 'varchar', length: 255 })
   kurir: string;
 
-  @Column({ nullable: true })
-  petugas_aparat_id: string;
-
-  @Column({ type: 'date', nullable: false })
-  tanggal_kirim: Date;
-
-  @Column({
-    type: 'enum',
-    enum: JenisPengiriman,
-    default: JenisPengiriman.INTERNAL,
-  })
-  metode_kirim: JenisPengiriman;
+  @Column({ type: 'text' })
+  tujuan: string;
 
   @Column({
     type: 'enum',
@@ -39,12 +41,26 @@ export class Ekspedisi {
   })
   status: StatusEkspedisi;
 
-  @Column({ nullable: true })
-  bukti_terima_url?: string;
+  // ✅ Add bukti terima fields
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  bukti_terima_path: string;
 
-  @CreateDateColumn()
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  nama_penerima: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  tanggal_terima: Date;
+
+  // ✅ Add catatan for tracking
+  @Column({ type: 'text', nullable: true })
+  catatan: string;
+
+  @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  deleted_at: Date;
 }

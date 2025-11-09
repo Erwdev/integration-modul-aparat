@@ -16,6 +16,9 @@ RUN npm ci
 # Copy rest of the application
 COPY api/ .
 
+RUN mkdir -p uploads/signatures uploads/bukti-terima && \
+    chmod -R 755 uploads
+
 # Build the application
 RUN npm run build
 

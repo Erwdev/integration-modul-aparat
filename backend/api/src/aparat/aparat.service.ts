@@ -220,13 +220,13 @@ export class AparatService {
    */
   async update(id: string, dto: UpdateAparatDto) {
     try {
-      // ✅ Validate uniqueness
+      // ✅ 1. Validate uniqueness (bisa throw ConflictException)
       await this.ensureUniqueNikNip(dto.nik, dto.nip, id);
-
-      // ✅ Get existing data
+      
+      // ✅ 2. Get existing data
       const item = await this.findOne(id);
-
-      // ✅ Store old values for event
+      
+      // ✅ 3. Store old values before update
       const oldValues = {
         nip: item.nip,
         nik: item.nik,
@@ -235,14 +235,14 @@ export class AparatService {
         pangkat_golongan: item.pangkat_golongan,
         status: item.status,
       };
-
-      // ✅ Update fields
+      
+      // ✅ 4. Update fields
       Object.assign(item, dto);
-      item.version = (item.version ?? 1) + 1;
-
+      
+      // ✅ 5. Save
       const saved = await this.repo.save(item);
-
-      // ✅ Emit event APARAT_UPDATED (persistent)
+      
+      // ✅ 6. Publish event APARAT_UPDATED (HANYA JIKA BERHASIL!)
       await this.eventsService.publishEvent({
         topic: EventTopic.APARAT_UPDATED,
         payload: {
@@ -250,6 +250,9 @@ export class AparatService {
           nip: saved.nip,
           nik: saved.nik,
           nama: saved.nama,
+          jabatan: saved.jabatan,
+          pangkat_golongan: saved.pangkat_golongan,
+          status: saved.status,
           changes: dto,
           oldValues,
           version: saved.version,
@@ -263,7 +266,7 @@ export class AparatService {
         }),
       });
 
-      // ✅ Keep backward compatibility
+      // ✅ Keep backward compatibility with local events
       this.eventEmitter.emit('aparat.updated', {
         id: saved.id_aparat,
         updated_at: saved.updated_at,
@@ -272,6 +275,7 @@ export class AparatService {
       this.logger.log(`Aparat ${id} updated: ${saved.nip}`);
       return saved;
     } catch (error) {
+      // ✅ Re-throw known errors without publishing events
       if (
         error instanceof ConflictException ||
         error instanceof NotFoundException
@@ -279,8 +283,9 @@ export class AparatService {
         throw error;
       }
 
+      // ✅ Handle database errors
       if (error.code === '23505') {
-        this.logger.error(`Duplicate constraint: ${error.detail}`, error.stack);
+        this.logger.error(`Duplicate constraint on update: ${error.detail}`, error.stack);
         throw new ConflictException({
           message: 'NIK or NIP already exists',
           error: 'DUPLICATE_CONSTRAINT',
@@ -288,6 +293,16 @@ export class AparatService {
         });
       }
 
+      if (error.code === '23503') {
+        this.logger.error(`Foreign key violation on update: ${error.detail}`, error.stack);
+        throw new BadRequestException({
+          message: 'Invalid reference data',
+          error: 'INVALID_REFERENCE',
+          details: error.detail,
+        });
+      }
+
+      // ✅ Generic error
       this.logger.error(`Failed to update aparat ${id}: ${error.message}`, error.stack);
       throw new BadRequestException({
         message: 'Failed to update aparat',
@@ -296,7 +311,6 @@ export class AparatService {
       });
     }
   }
-
   /**
    * Patch status only
    */
