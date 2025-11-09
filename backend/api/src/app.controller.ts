@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ConfigService } from '@nestjs/config';
 import { APP_CONSTANTS } from './constants/app.constants';
-
+import { Public } from './common/decorators/public.decorator';
 interface HealthResponse {
   status: string;
   service: string;
@@ -23,7 +23,7 @@ export class AppController {
     private readonly appService: AppService,
     private readonly configService: ConfigService,
   ) {}
-
+  @Public()
   @Get()
   getRoot(): RootResponse {
     return {
@@ -37,6 +37,7 @@ export class AppController {
     };
   }
 
+  @Public()
   @Get('health')
   getHealth(): HealthResponse {
     return {

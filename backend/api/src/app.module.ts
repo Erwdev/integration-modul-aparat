@@ -14,6 +14,8 @@ import { SuratModule } from './surat/surat.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core/constants';
+import { EkspedisiModule } from './ekspedisi/ekspedisi.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -33,6 +35,9 @@ import { APP_GUARD } from '@nestjs/core/constants';
         database: cs.get<string>('POSTGRES_DB'),
         autoLoadEntities: true,
         synchronize: false,
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        logging: process.env.NODE_ENV === 'development',
+
       }),
       inject: [ConfigService],
     }),
@@ -40,7 +45,8 @@ import { APP_GUARD } from '@nestjs/core/constants';
     UsersModule,
     AparatModule,
     ApiKeyModule, 
-    AuthModule, 
+    EkspedisiModule,
+    AuthModule, EventsModule, 
     SuratModule
 
   ],
@@ -49,11 +55,11 @@ import { APP_GUARD } from '@nestjs/core/constants';
     AppService,
     {
       provide: APP_GUARD,
-      useClass: JwtAuthGuard, // Apply globally
+      useClass: JwtAuthGuard, 
     },
     {
       provide: APP_GUARD,
-      useClass: RolesGuard, // Apply globally after JwtAuthGuard
+      useClass: RolesGuard, 
     },
   ],
 })
