@@ -10,6 +10,7 @@ import { SuratModule } from './surat/surat.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core/constants';
+import { EkspedisiModule } from './ekspedisi/ekspedisi.module';
 import { EventsModule } from './events/events.module';
 
 @Module({
@@ -37,6 +38,7 @@ import { EventsModule } from './events/events.module';
 
     UsersModule,
     ApiKeyModule, 
+    EkspedisiModule,
     AuthModule, EventsModule, 
     SuratModule
 
