@@ -126,11 +126,13 @@ ON CONFLICT (jenjang_pendidikan) DO NOTHING;
 CREATE TABLE IF NOT EXISTS users (
     id_user SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'OPERATOR',
     nama_lengkap VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    refresh_token TEXT,
     
     CONSTRAINT chk_role CHECK (role IN ('ADMIN', 'OPERATOR', 'VIEWER'))
 );
@@ -229,8 +231,8 @@ CREATE TRIGGER update_user_updated_at
 -- ============================================
 
 -- Password: admin123 (IMPORTANT: Change this hash to real bcrypt in production!)
-INSERT INTO users (username, password, role, nama_lengkap) VALUES
-    ('admin', '$2b$10$rN8KjxBZxKjVxKjVxKjVxO7YqW.Z8KqZ8KqZ8KqZ8KqZ8KqZ8Kq', 'ADMIN', 'Administrator')
+INSERT INTO users (username,email, password, role, nama_lengkap) VALUES
+    ('admin', 'admin@aparat.local','$2b$10$rN8KjxBZxKjVxKjVxKjVxO7YqW.Z8KqZ8KqZ8KqZ8KqZ8KqZ8Kq', 'ADMIN', 'Administrator')
 ON CONFLICT (username) DO NOTHING;
 
 -- Data aparat contoh (idempotent)

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -29,8 +33,8 @@ export class UsersService {
    */
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
-      where: { email }
-    })
+      where: { email },
+    });
   }
 
   /**
@@ -73,12 +77,61 @@ export class UsersService {
    * Update user data
    */
 
+  /**
+   * Update password only (used by change password feature)
+   */
+  async updatePassword(id: number, newPassword: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    user.password = hashedPassword;
+
+    return this.userRepository.save(user);
+  }
+
+  async delete(id: number): Promise<void> {
+    const result = await this.userRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+  }
+
+  async validatePassword(
+    plainPassword: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
+    return bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  async logout(id: number): Promise<boolean> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+    if (!user) return false;
+
+    await this.userRepository.update(id, {
+      refresh_token: null,
+    });
+    return true;
+  }
+
+  /**
+   * Update user data (excluding password)
+   */
   async update(id: number, updateData: Partial<User>): Promise<User> {
     const user = await this.findById(id);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
+    // Remove password from update data if present
     if (updateData.password) {
       delete updateData.password;
     }
@@ -86,39 +139,4 @@ export class UsersService {
     Object.assign(user, updateData);
     return this.userRepository.save(user);
   }
-
-  /**
-   * Update password only 
-   */
-
-  async updatePassword(id: number, newPassword: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
-    user.password = await bcrypt.hash(newPassword, 10);
-    return this.userRepository.save(user);
-  }
-
-  async delete(id: number): Promise<void>{
-    const result = await this.userRepository.delete(id);
-    if(result.affected === 0){
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-  }
-
-  async validatePassword(password: string , plainPassword: string): Promise<boolean>  {
-    return bcrypt.compare(plainPassword, password);
-
-  }
-
-  async logout(id: number): Promise<boolean> {
-    const user = await this.userRepository.findOne({
-      where: { id }
-    });
-    if (!user ) return false;
-
-    await this.userRepository.update(id, {
-      refresh_token: null
-    })
-    return true;
-  }
-
 }

@@ -46,3 +46,19 @@ export class LogoutDto {
   @IsNotEmpty({ message: ValidationMessage.TOKEN_REQUIRED })
   token: string;
 }
+
+export class ChangePasswordDto {
+  @IsString()
+  @IsNotEmpty({ message: 'Password lama tidak boleh kosong' })
+  oldPassword: string;
+
+  @IsString()
+  @IsNotEmpty( {message: ValidationMessage.PASSWORD_REQUIRED})
+  @MinLength(6, {message: ValidationMessage.PASSWORD_MIN})
+  newPassword: string
+
+  @IsString()
+  @IsNotEmpty({ message: 'Konfirmasi password tidak boleh kosong' })
+  confirmPassword: string;
+
+}

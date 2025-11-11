@@ -7,7 +7,7 @@ import {
   Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto, LogoutDto } from './dto/login.dto';
+import { LoginDto, RegisterDto, ChangePasswordDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import {
   AuthResponseDto,
@@ -77,5 +77,13 @@ export class AuthController {
   ): Promise<ProfileResponseDto> {
     console.log('Current User:', user);
     return this.authService.getProfile(user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(
+    @CurrentUser() user: JwtPayload, @Body() changePasswordDto: ChangePasswordDto
+  ) {
+    return this.authService.changePassword(user.sub, changePasswordDto);
   }
 }

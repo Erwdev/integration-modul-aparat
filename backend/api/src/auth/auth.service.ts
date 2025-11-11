@@ -1,8 +1,17 @@
 // ...existing code...
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { LoginDto, RegisterDto, LogoutDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { AuthResponseDto, ProfileResponseDto, RefreshResponseDto } from './dto/auth-response.dto';
+import { ChangePasswordDto } from '../auth/dto/login.dto';
+import {
+  AuthResponseDto,
+  ProfileResponseDto,
+  RefreshResponseDto,
+} from './dto/auth-response.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from 'src/users/users.service';
@@ -51,33 +60,22 @@ export class AuthService {
     });
   }
 
-  // async register(registerDto: RegisterDto):Promise<AuthResponseDto> {
-  //   const existingUser = await this.usersService.findByEmail(registerDto.email);
-  //   if(existingUser) {
-  //     throw new ConflictException('Email sudah digunakan')
-  //   }
-
-  //   const newUser = await.this.usersService.createUser(registerDto)
-
-  //   const token = await.this.usersService.createUser(registerDto)
-
-  // }
-  async register(registerDto: RegisterDto):Promise<AuthResponseDto> {
+  async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
     const newUser = await this.usersService.createUser({
       username: registerDto.username,
       email: registerDto.email,
       password: registerDto.password,
-      nama_lengkap: registerDto.nama_lengkap
+      nama_lengkap: registerDto.nama_lengkap,
     });
 
     const payload: JwtPayload = {
       sub: newUser.id,
       username: newUser.username,
       role: newUser.role,
-    }
+    };
 
-    const access_token = this.generateAccessToken(payload)
-    const refresh_token = this.generateRefreshToken(payload)
+    const access_token = this.generateAccessToken(payload);
+    const refresh_token = this.generateRefreshToken(payload);
 
     return {
       access_token,
@@ -100,7 +98,10 @@ export class AuthService {
       throw new UnauthorizedException('Username atau password salah');
     }
 
-    const isPasswordValid = await this.usersService.validatePassword(loginDto.password, user.password);
+    const isPasswordValid = await this.usersService.validatePassword(
+      loginDto.password,
+      user.password,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Username atau password salah');
     }
@@ -117,7 +118,6 @@ export class AuthService {
     const expiresIn = this.configService.get<string>('JWT_EXPIRES_IN', '30m');
     const expiresInSeconds = this.parseExpiresIn(expiresIn);
 
-    
     return {
       access_token,
       refresh_token,
@@ -152,8 +152,8 @@ export class AuthService {
         throw new UnauthorizedException('User tidak ditemukan');
       }
 
-      if(decoded.role !== user.role ){
-        throw new UnauthorizedException('Role berubah silahkan login kembali')
+      if (decoded.role !== user.role) {
+        throw new UnauthorizedException('Role berubah silahkan login kembali');
       }
 
       const payload: JwtPayload = {
@@ -187,7 +187,7 @@ export class AuthService {
 
   async getProfile(user_id: number): Promise<ProfileResponseDto> {
     const user = await this.usersService.findById(user_id);
-    
+
     if (!user) {
       throw new UnauthorizedException('User tidak ditemukan');
     }
@@ -204,6 +204,57 @@ export class AuthService {
 
   async logout(userId: number): Promise<{ message: string }> {
     await this.usersService.logout(userId);
-    return { message: 'Logout successful'}
+    return { message: 'Logout successful' };
+  }
+
+  async changePassword(
+    userId: number,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    const { oldPassword, newPassword, confirmPassword } = changePasswordDto;
+
+    // Validate new password matches confirmation
+    if (newPassword !== confirmPassword) {
+      throw new BadRequestException(
+        'Password baru tidak cocok dengan konfirmasi',
+      );
+    }
+
+    // Check if new password is same as old
+    if (oldPassword === newPassword) {
+      throw new BadRequestException(
+        'Password baru harus berbeda dengan password lama',
+      );
+    }
+
+    // Get user with password for validation
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User tidak ditemukan');
+    }
+
+    // Get user with password included (using findByUsername)
+    const userWithPassword = await this.usersService.findByUsername(
+      user.username,
+    );
+    if (!userWithPassword) {
+      throw new UnauthorizedException('User tidak ditemukan');
+    }
+
+    // Validate old password
+    const isOldPasswordValid = await this.usersService.validatePassword(
+      
+      oldPassword,
+      userWithPassword.password,
+    );
+
+    if (!isOldPasswordValid) {
+      throw new UnauthorizedException('Password lama tidak sesuai');
+    }
+
+    // Update password
+    await this.usersService.updatePassword(userId, newPassword);
+
+    return { message: 'Password berhasil diubah' };
   }
 }

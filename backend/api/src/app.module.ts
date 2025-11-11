@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { AppController } from './app.controller';
@@ -31,6 +32,7 @@ import { EventsModule } from './events/events.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (cs: ConfigService) => ({
+      
         type: 'postgres',
         host: cs.get<string>('DB_HOST', 'db'),
         port: cs.get<number>('DB_PORT', 5432),
@@ -44,7 +46,7 @@ import { EventsModule } from './events/events.module';
         ssl:
           cs.get<string>('NODE_ENV') === 'production'
             ? { rejectUnauthorized: false }
-            : false,
+            : false, 
       }),
     }),
 
