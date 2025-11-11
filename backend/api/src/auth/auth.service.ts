@@ -1,4 +1,4 @@
-// ...existing code...
+
 import {
   Injectable,
   UnauthorizedException,
@@ -48,16 +48,23 @@ export class AuthService {
   private generateRefreshToken(payload: JwtPayload): string {
     const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
     const refreshExpiresIn =
-      this.configService.get<number>('JWT_REFRESH_EXPIRES_IN') ?? '7d';
+      this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') ?? '7d';
 
     if (!refreshSecret) {
       throw new Error('JWT_REFRESH_SECRET is not configured');
     }
 
-    return this.jwtService.sign(payload as Record<string, any>, {
-      secret: refreshSecret, // ✅ Gunakan JWT_REFRESH_SECRET yang sama
-      expiresIn: refreshExpiresIn,
-    });
+    return this.jwtService.sign(
+      {
+        sub: payload.sub,
+        username: payload.username,
+        role: payload.role,
+      },
+      {
+        secret: refreshSecret,
+        expiresIn: refreshExpiresIn as any,
+      },
+    );
   }
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
@@ -77,11 +84,14 @@ export class AuthService {
     const access_token = this.generateAccessToken(payload);
     const refresh_token = this.generateRefreshToken(payload);
 
+    const expiresIn = this.configService.get<string>('JWT_EXPIRES_IN', '30m');
+    const expiresInSeconds = this.parseExpiresIn(expiresIn);
+
     return {
       access_token,
       refresh_token,
       token_type: 'Bearer',
-      expires_in: this.configService.get<number>('JWT_EXPIRES_IN', 3600),
+      expires_in: expiresInSeconds,
       user: {
         id: newUser.id,
         username: newUser.username,
@@ -98,10 +108,18 @@ export class AuthService {
       throw new UnauthorizedException('Username atau password salah');
     }
 
+    console.log('🔍 LOGIN DEBUG:');
+    console.log('Username:', loginDto.username);
+    console.log('Plain Password:', loginDto.password);
+    console.log('Hashed Password:', user.password);
+    console.log('Password exists:', !!user.password);
+    console.log('Password length:', user.password?.length);
+
     const isPasswordValid = await this.usersService.validatePassword(
       loginDto.password,
       user.password,
     );
+    console.log('Password Valid:', isPasswordValid);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Username atau password salah');
     }
@@ -135,6 +153,12 @@ export class AuthService {
 
   async refresh(refreshTokenDto: RefreshTokenDto): Promise<RefreshResponseDto> {
     try {
+      console.log('🔄 REFRESH DEBUG:');
+      console.log(
+        'Token received:',
+        refreshTokenDto.refreshToken?.substring(0, 30) + '...',
+      );
+
       const decoded = this.jwtService.verify<JwtPayload>(
         refreshTokenDto.refreshToken,
         {
@@ -175,6 +199,7 @@ export class AuthService {
         expires_in: expiresInSeconds,
       };
     } catch (error) {
+      console.error('❌ REFRESH ERROR:', error);
       if (error instanceof TokenExpiredError) {
         throw new UnauthorizedException('Refresh token sudah kadaluarsa');
       }
@@ -243,7 +268,6 @@ export class AuthService {
 
     // Validate old password
     const isOldPasswordValid = await this.usersService.validatePassword(
-      
       oldPassword,
       userWithPassword.password,
     );

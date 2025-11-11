@@ -127,16 +127,17 @@ export class UsersService {
    */
   async update(id: number, updateData: Partial<User>): Promise<User> {
     const user = await this.findById(id);
+
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`User dengan ID ${id} tidak ditemukan`);
     }
 
-    // Remove password from update data if present
-    if (updateData.password) {
-      delete updateData.password;
-    }
+    // Prevent password update through this method
+    delete updateData.password;
 
+    // Update user
     Object.assign(user, updateData);
+
     return this.userRepository.save(user);
   }
 }

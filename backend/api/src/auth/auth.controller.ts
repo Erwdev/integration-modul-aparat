@@ -44,7 +44,6 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@CurrentUser() user: JwtPayload): Promise<{ message: string }> {
     await this.authService.logout(user.sub);
@@ -57,11 +56,27 @@ export class AuthController {
     @Headers('authorization') authHeader?: string,
     @Body() body?: RefreshTokenDto,
   ): Promise<RefreshResponseDto> {
+    // ✅ ADD DEBUG LOGGING
+    console.log('🔍 REFRESH CONTROLLER DEBUG:');
+    console.log('Authorization Header:', authHeader);
+    console.log('Body:', body);
+
     const tokenFromHeader = authHeader?.startsWith('Bearer ')
       ? authHeader.substring(7)
       : undefined;
 
+    console.log(
+      'Token from Header:',
+      tokenFromHeader?.substring(0, 20) + '...',
+    );
+    console.log(
+      'Token from Body:',
+      body?.refreshToken?.substring(0, 20) + '...',
+    );
+
     const refreshToken = tokenFromHeader ?? body?.refreshToken;
+
+    console.log('Final Token Used:', refreshToken?.substring(0, 20) + '...');
 
     if (!refreshToken) {
       throw new BadRequestException('Refresh token tidak ditemukan');
@@ -70,7 +85,6 @@ export class AuthController {
     return this.authService.refresh({ refreshToken });
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('profile')
   async getProfile(
     @CurrentUser() user: JwtPayload,
@@ -79,10 +93,10 @@ export class AuthController {
     return this.authService.getProfile(user.sub);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('change-password')
   async changePassword(
-    @CurrentUser() user: JwtPayload, @Body() changePasswordDto: ChangePasswordDto
+    @CurrentUser() user: JwtPayload,
+    @Body() changePasswordDto: ChangePasswordDto,
   ) {
     return this.authService.changePassword(user.sub, changePasswordDto);
   }

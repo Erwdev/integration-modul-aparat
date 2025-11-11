@@ -97,22 +97,22 @@ describe('UsersService', () => {
     it('should return user when found', async () => {
       mockRepository.findOne.mockResolvedValue(mockUser);
 
-      const result = await service.findById(1); // ✅ Correct: number
+      const result = await service.findById(1);
 
       expect(result).toEqual(mockUser);
       expect(mockRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 1 }, // ✅ Fix: Changed from 'id' to match column name in entity
+        where: { id: 1 },
       });
     });
 
     it('should return null when user not found', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findById(999); // ✅ Fix: Changed from string to number
+      const result = await service.findById(999);
 
       expect(result).toBeNull();
       expect(mockRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 999 }, // ✅ Added assertion
+        where: { id: 999 },
       });
     });
 
@@ -313,21 +313,24 @@ describe('UsersService', () => {
 
   describe('validatePassword', () => {
     it('should return true for correct password', async () => {
+      // validatePassword(plainPassword, hashedPassword)
+      const hashedPassword = await require('bcrypt').hash('password123', 10);
       const result = await service.validatePassword(
-        '$2b$10$hashedpassword',
         'password123',
+        hashedPassword,
       );
 
-      expect(typeof result).toBe('boolean');
+      expect(result).toBe(true);
     });
 
     it('should return false for incorrect password', async () => {
+      const hashedPassword = await require('bcrypt').hash('password123', 10);
       const result = await service.validatePassword(
-        '$2b$10$hashedpassword',
         'wrongpassword',
+        hashedPassword,
       );
 
-      expect(typeof result).toBe('boolean');
+      expect(result).toBe(false);
     });
   });
 

@@ -26,7 +26,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      target: production
+      target: development
     container_name: aparat-backend
     restart: unless-stopped
     depends_on:
@@ -67,8 +67,13 @@ services:
       MAX_FILE_SIZE: ${MAX_FILE_SIZE:-2097152}
       ALLOWED_FILE_TYPES: ${ALLOWED_FILE_TYPES:-.png,.jpg,.jpeg,.pdf}
     volumes:
+      - ./backend/api/src:/app/api/src
+      - ./backend/api/nest-cli.json:/app/api/nest-cli.json
+      - ./backend/api/tsconfig.json:/app/api/tsconfig.json
+      - ./backend/api/tsconfig.build.json:/app/api/tsconfig.build.json
       - ./backend/api/uploads:/app/api/uploads
       - api_logs:/app/api/logs
+      - /app/api/node_modules
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
     networks:

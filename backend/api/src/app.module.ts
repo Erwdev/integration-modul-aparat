@@ -14,7 +14,7 @@ import { AuthModule } from './auth/auth.module';
 import { SuratModule } from './surat/surat.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
-import { APP_GUARD } from '@nestjs/core/constants';
+import { APP_GUARD } from '@nestjs/core';
 import { EkspedisiModule } from './ekspedisi/ekspedisi.module';
 import { EventsModule } from './events/events.module';
 

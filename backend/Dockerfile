@@ -54,37 +54,38 @@ EXPOSE 3000
 CMD ["npm", "run", "start:dev"]
 
 
-# ===============================
-# Stage 4: Production
-# ===============================
-FROM node:20-alpine AS production
+# # ===============================
+# # Stage 4: Production
+# # ===============================
+# FROM node:20-alpine AS production
 
-WORKDIR /app/api
+# WORKDIR /app/api
 
-# Create non-root user for security
-RUN addgroup -S nodejs && adduser -S nestjs -G nodejs
+# # Create non-root user for security
+# RUN addgroup -S nodejs && adduser -S nestjs -G nodejs
 
-# Copy only necessary files
-COPY api/package*.json ./
+# # Copy only necessary files
+# COPY api/package*.json ./
 
-# Install only production dependencies
-RUN npm ci --omit=dev && npm cache clean --force
+# # Install only production dependencies
+# RUN npm ci --omit=dev && npm cache clean --force
 
-# Copy compiled code from builder
-COPY --from=builder /app/api/dist ./dist
+# # Copy compiled code from builder
+# COPY --from=builder /app/api/dist ./dist
 
-# Prepare upload + log dirs with proper permissions
-RUN mkdir -p uploads/signatures uploads/bukti-terima logs \
- && chown -R nestjs:nodejs uploads logs \
- && chmod -R 755 uploads logs
+# # Prepare upload + log dirs with proper permissions
+# RUN mkdir -p uploads/signatures uploads/bukti-terima logs \
+#  && chown -R nestjs:nodejs uploads logs \
+#  && chmod -R 755 uploads logs
 
-# Switch to non-root user
-USER nestjs
+# # Switch to non-root user
+# USER nestjs
 
-EXPOSE 3000
+# EXPOSE 3000
 
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', r => process.exit(r.statusCode === 200 ? 0 : 1))"
+# # Healthcheck
+# HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+#   CMD node -e "require('http').get('http://localhost:3000/health', r => process.exit(r.statusCode === 200 ? 0 : 1))"
 
-CMD ["node", "dist/main.js"]
+# CMD ["node", "dist/main.js"]
+ 
