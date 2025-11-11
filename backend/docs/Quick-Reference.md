@@ -4,6 +4,9 @@ Quick cheat sheet for all endpoints.
 
 ## Authentication
 ```bash
+# Register
+POST /auth/register
+
 # Login
 POST /auth/login
 
@@ -12,6 +15,9 @@ POST /auth/refresh
 
 # Profile
 GET /auth/profile
+
+# Logout
+POST /auth/logout
 ```
 
 ## Aparat

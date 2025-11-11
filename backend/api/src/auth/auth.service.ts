@@ -1,8 +1,8 @@
 // ...existing code...
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { LoginDto } from './dto/login.dto';
+import { LoginDto, RegisterDto, LogoutDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { AuthResponseDto } from './dto/auth-response.dto';
+import { AuthResponseDto, ProfileResponseDto, RefreshResponseDto } from './dto/auth-response.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from 'src/users/users.service';
@@ -10,6 +10,7 @@ import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { User } from 'src/users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Injectable()
 export class AuthService {
@@ -50,14 +51,47 @@ export class AuthService {
     });
   }
 
-  async validateUser(payload: JwtPayload): Promise<User> {
-    // JwtPayload.sub is string (standard). convert to number for DB lookup.
-    const userId = payload.sub;
-    const user = await this.usersService.findById(userId);
-    if (!user) {
-      throw new UnauthorizedException('User tidak ditemukan');
+  // async register(registerDto: RegisterDto):Promise<AuthResponseDto> {
+  //   const existingUser = await this.usersService.findByEmail(registerDto.email);
+  //   if(existingUser) {
+  //     throw new ConflictException('Email sudah digunakan')
+  //   }
+
+  //   const newUser = await.this.usersService.createUser(registerDto)
+
+  //   const token = await.this.usersService.createUser(registerDto)
+
+  // }
+  async register(registerDto: RegisterDto):Promise<AuthResponseDto> {
+    const newUser = await this.usersService.createUser({
+      username: registerDto.username,
+      email: registerDto.email,
+      password: registerDto.password,
+      nama_lengkap: registerDto.nama_lengkap
+    });
+
+    const payload: JwtPayload = {
+      sub: newUser.id,
+      username: newUser.username,
+      role: newUser.role,
     }
-    return user;
+
+    const access_token = this.generateAccessToken(payload)
+    const refresh_token = this.generateRefreshToken(payload)
+
+    return {
+      access_token,
+      refresh_token,
+      token_type: 'Bearer',
+      expires_in: this.configService.get<number>('JWT_EXPIRES_IN', 3600),
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+        nama_lengkap: newUser.nama_lengkap,
+      },
+    };
   }
 
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
@@ -66,10 +100,7 @@ export class AuthService {
       throw new UnauthorizedException('Username atau password salah');
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      loginDto.password,
-      user.password,
-    );
+    const isPasswordValid = await this.usersService.validatePassword(loginDto.password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Username atau password salah');
     }
@@ -86,6 +117,7 @@ export class AuthService {
     const expiresIn = this.configService.get<string>('JWT_EXPIRES_IN', '30m');
     const expiresInSeconds = this.parseExpiresIn(expiresIn);
 
+    
     return {
       access_token,
       refresh_token,
@@ -93,6 +125,7 @@ export class AuthService {
       expires_in: expiresInSeconds,
       user: {
         id: user.id,
+        email: user.email || '',
         username: user.username,
         role: user.role,
         nama_lengkap: user.nama_lengkap,
@@ -100,7 +133,7 @@ export class AuthService {
     };
   }
 
-  async refresh(refreshTokenDto: RefreshTokenDto): Promise<AuthResponseDto> {
+  async refresh(refreshTokenDto: RefreshTokenDto): Promise<RefreshResponseDto> {
     try {
       const decoded = this.jwtService.verify<JwtPayload>(
         refreshTokenDto.refreshToken,
@@ -114,8 +147,13 @@ export class AuthService {
       // decoded.sub is string; convert to number for DB lookup
       const userId = decoded.sub;
       const user = await this.usersService.findById(userId);
+
       if (!user) {
         throw new UnauthorizedException('User tidak ditemukan');
+      }
+
+      if(decoded.role !== user.role ){
+        throw new UnauthorizedException('Role berubah silahkan login kembali')
       }
 
       const payload: JwtPayload = {
@@ -135,12 +173,6 @@ export class AuthService {
         refresh_token,
         token_type: 'Bearer',
         expires_in: expiresInSeconds,
-        user: {
-          id: user.id,
-          username: user.username,
-          role: user.role,
-          nama_lengkap: user.nama_lengkap,
-        },
       };
     } catch (error) {
       if (error instanceof TokenExpiredError) {
@@ -151,5 +183,27 @@ export class AuthService {
       }
       throw new UnauthorizedException('Token validation failed');
     }
+  }
+
+  async getProfile(user_id: number): Promise<ProfileResponseDto> {
+    const user = await this.usersService.findById(user_id);
+    
+    if (!user) {
+      throw new UnauthorizedException('User tidak ditemukan');
+    }
+
+    return {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      nama_lengkap: user.nama_lengkap,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
+    };
+  }
+
+  async logout(userId: number): Promise<{ message: string }> {
+    await this.usersService.logout(userId);
+    return { message: 'Logout successful'}
   }
 }

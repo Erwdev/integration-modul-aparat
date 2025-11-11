@@ -77,11 +77,13 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
-    container_name: siap-frontend-dev
+      dockerfile: DockerFile
+      target: deps
+    container_name: aparat-frontend-dev
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3000
       NEXT_PUBLIC_API_BASE_PATH: /api/v1
+      NODE_ENV: development
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -91,7 +93,7 @@ services:
     depends_on:
       - backend
     networks:
-      - siap-network
+      - aparat-network
     command: npm run dev
 
 volumes:

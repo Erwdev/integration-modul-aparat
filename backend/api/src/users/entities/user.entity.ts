@@ -6,7 +6,6 @@ import {
   UpdateDateColumn,
   BeforeInsert,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 
 @Entity('users')
 export class User {
@@ -16,8 +15,11 @@ export class User {
   @Column({ unique: true })
   username: string;
 
-  @Column({ select: false }) // Hide password by default in queries
+  @Column({ select: false })
   password: string;
+
+  @Column({ unique: true })
+  email: string;
 
   @Column()
   role: string;
@@ -31,22 +33,8 @@ export class User {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @BeforeInsert()
-  async hashPassword(): Promise<void> {
-    if (this.password && !this.password.startsWith('$2b$')) {
-      const hashedPassword = await bcrypt.hash(this.password, 10); //adding check if the password already hashed
-      this.password = hashedPassword; // Use the variable
-    }
-  }
-  // fixing password update flow should be through service to simplify hook
+  @Column({ nullable: true })
+  refresh_token: string;
 
-  async validatePassword(plainPassword: string): Promise<boolean> {
-    return bcrypt.compare(plainPassword, this.password);
-  }
-  //sementara linter disable
-
-  // toJSON() {
-  //   const { password, ...result } = this;
-  //   return result;
-  // }
 }
+
