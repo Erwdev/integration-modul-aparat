@@ -1,13 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-    ],
+  transpilePackages: ['gsap'],
+  experimental: {
+    esmExternals: 'loose',
+  },
+  output: 'standalone',
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+    };
+    return config;
   },
 }
+
+module.exports = nextConfig

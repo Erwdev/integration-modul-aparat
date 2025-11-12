@@ -1,14 +1,10 @@
 import { User } from './user.entity';
-import * as bcrypt from 'bcrypt';
-
-jest.mock('bcrypt');
 
 describe('User Entity', () => {
   let user: User;
 
   beforeEach(() => {
     user = new User();
-    jest.clearAllMocks();
   });
 
   describe('Entity Structure', () => {
@@ -20,168 +16,41 @@ describe('User Entity', () => {
     it('should have correct properties', () => {
       user.id = 123;
       user.username = 'testuser';
+      user.email = 'test@example.com';
       user.password = 'hashedpassword';
       user.role = 'ADMIN';
       user.nama_lengkap = 'Test User';
 
       expect(user.id).toBe(123);
       expect(user.username).toBe('testuser');
+      expect(user.email).toBe('test@example.com');
       expect(user.password).toBe('hashedpassword');
       expect(user.role).toBe('ADMIN');
       expect(user.nama_lengkap).toBe('Test User');
     });
   });
 
-  describe('hashPassword', () => {
-    it('should hash password before insert', async () => {
-      const plainPassword = 'password123';
-      const hashedPassword = '$2b$10$hashedpassword';
-
-      user.password = plainPassword;
-
-      (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
-
-      await user.hashPassword();
-
-      expect(bcrypt.hash).toHaveBeenCalledWith(plainPassword, 10);
-      expect(user.password).toBe(hashedPassword);
+  describe('Email Field', () => {
+    it('should accept valid email', () => {
+      user.email = 'test@example.com';
+      expect(user.email).toBe('test@example.com');
     });
 
-    it('should hash password before update', async () => {
-      const plainPassword = 'newpassword456';
-      const hashedPassword = '$2b$10$newhashedpassword';
-
-      user.password = plainPassword;
-
-      (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
-
-      await user.hashPassword();
-
-      expect(bcrypt.hash).toHaveBeenCalledWith(plainPassword, 10);
-      expect(user.password).toBe(hashedPassword);
-    });
-
-    it('should not hash if password is undefined', async () => {
-      user.password = undefined as any;
-
-      await user.hashPassword();
-
-      expect(bcrypt.hash).not.toHaveBeenCalled();
-    });
-
-    it('should not hash if password is null', async () => {
-      user.password = null as any;
-
-      await user.hashPassword();
-
-      expect(bcrypt.hash).not.toHaveBeenCalled();
-    });
-
-    it('should not hash if password is empty string', async () => {
-      user.password = '';
-
-      await user.hashPassword();
-
-      expect(bcrypt.hash).not.toHaveBeenCalled();
-    });
-
-    it('should use salt rounds of 10', async () => {
-      user.password = 'testpassword';
-
-      (bcrypt.hash as jest.Mock).mockResolvedValue('$2b$10$hashed');
-
-      await user.hashPassword();
-
-      expect(bcrypt.hash).toHaveBeenCalledWith('testpassword', 10);
-    });
-
-    it('should handle bcrypt errors gracefully', async () => {
-      user.password = 'testpassword';
-
-      const error = new Error('Bcrypt error');
-      (bcrypt.hash as jest.Mock).mockRejectedValue(error);
-
-      await expect(user.hashPassword()).rejects.toThrow('Bcrypt error');
+    it('should store email as provided', () => {
+      user.email = 'admin@kalurahan.id';
+      expect(user.email).toBe('admin@kalurahan.id');
     });
   });
 
-  describe('validatePassword', () => {
-    beforeEach(() => {
-      user.password = '$2b$10$hashedpassword';
+  describe('Refresh Token Field', () => {
+    it('should accept refresh token', () => {
+      user.refresh_token = 'some-refresh-token';
+      expect(user.refresh_token).toBe('some-refresh-token');
     });
 
-    it('should return true for correct password', async () => {
-      const plainPassword = 'correctpassword';
-
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-
-      const result = await user.validatePassword(plainPassword);
-
-      expect(result).toBe(true);
-      expect(bcrypt.compare).toHaveBeenCalledWith(plainPassword, user.password);
-    });
-
-    it('should return false for incorrect password', async () => {
-      const plainPassword = 'wrongpassword';
-
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
-
-      const result = await user.validatePassword(plainPassword);
-
-      expect(result).toBe(false);
-      expect(bcrypt.compare).toHaveBeenCalledWith(plainPassword, user.password);
-    });
-
-    it('should handle empty password', async () => {
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
-
-      const result = await user.validatePassword('');
-
-      expect(result).toBe(false);
-      expect(bcrypt.compare).toHaveBeenCalledWith('', user.password);
-    });
-
-    it('should handle special characters in password', async () => {
-      const specialPassword = 'p@$$w0rd!#123';
-
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-
-      const result = await user.validatePassword(specialPassword);
-
-      expect(result).toBe(true);
-      expect(bcrypt.compare).toHaveBeenCalledWith(
-        specialPassword,
-        user.password,
-      );
-    });
-
-    it('should handle unicode characters', async () => {
-      const unicodePassword = 'pässwörd123';
-
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-
-      const result = await user.validatePassword(unicodePassword);
-
-      expect(result).toBe(true);
-    });
-
-    it('should handle very long passwords', async () => {
-      const longPassword = 'a'.repeat(100);
-
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-
-      const result = await user.validatePassword(longPassword);
-
-      expect(result).toBe(true);
-    });
-
-    it('should handle bcrypt compare errors', async () => {
-      const error = new Error('Bcrypt compare error');
-      (bcrypt.compare as jest.Mock).mockRejectedValue(error);
-
-      await expect(user.validatePassword('test')).rejects.toThrow(
-        'Bcrypt compare error',
-      );
+    it('should allow null refresh token', () => {
+      user.refresh_token = null;
+      expect(user.refresh_token).toBeNull();
     });
   });
 
@@ -218,37 +87,27 @@ describe('User Entity', () => {
     });
   });
 
-  describe('Integration Tests', () => {
-    it('should hash and validate password correctly', async () => {
-      const plainPassword = 'testpassword123';
-      const hashedPassword = '$2b$10$actualhashedpassword';
+  describe('Complete User Object', () => {
+    it('should create a complete user object', () => {
+      user.id = 1;
+      user.username = 'testuser';
+      user.email = 'test@example.com';
+      user.password = '$2b$10$hashedpassword';
+      user.role = 'OPERATOR';
+      user.nama_lengkap = 'Test User';
+      user.refresh_token = 'refresh-token-xyz';
+      user.created_at = new Date();
+      user.updated_at = new Date();
 
-      user.password = plainPassword;
-
-      (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-
-      await user.hashPassword();
-      expect(user.password).toBe(hashedPassword);
-
-      const isValid = await user.validatePassword(plainPassword);
-      expect(isValid).toBe(true);
-    });
-
-    it('should fail validation with wrong password after hashing', async () => {
-      const plainPassword = 'correctpassword';
-      const wrongPassword = 'wrongpassword';
-      const hashedPassword = '$2b$10$hashedcorrectpassword';
-
-      user.password = plainPassword;
-
-      (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
-
-      await user.hashPassword();
-      const isValid = await user.validatePassword(wrongPassword);
-
-      expect(isValid).toBe(false);
+      expect(user.id).toBe(1);
+      expect(user.username).toBe('testuser');
+      expect(user.email).toBe('test@example.com');
+      expect(user.password).toBe('$2b$10$hashedpassword');
+      expect(user.role).toBe('OPERATOR');
+      expect(user.nama_lengkap).toBe('Test User');
+      expect(user.refresh_token).toBe('refresh-token-xyz');
+      expect(user.created_at).toBeInstanceOf(Date);
+      expect(user.updated_at).toBeInstanceOf(Date);
     });
   });
 });

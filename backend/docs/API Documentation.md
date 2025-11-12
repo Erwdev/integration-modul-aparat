@@ -40,7 +40,64 @@ Authorization: Bearer <JWT_ACCESS_TOKEN>
 
 Base path: `/auth`
 
-### 1.1 POST /auth/login
+### 1.1 POST /auth/register
+
+Register a new user account.
+
+**Request:**
+```http
+POST /auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": "Test123456",
+  "nama_lengkap": "Test User"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "Bearer",
+  "expires_in": 1800,
+  "user": {
+    "id": 1,
+    "username": "testuser",
+    "email": "test@example.com",
+    "role": "OPERATOR",
+    "nama_lengkap": "Test User"
+  }
+}
+```
+
+**Response (409 Conflict):**
+```json
+{
+  "statusCode": 409,
+  "message": "Email atau username sudah digunakan"
+}
+```
+
+**Validation Rules:**
+- `username`: Required, 3-50 characters
+- `email`: Required, valid email format
+- `password`: Required, minimum 8 characters, must contain uppercase, lowercase, and number
+- `nama_lengkap`: Required, minimum 3 characters
+
+**cURL Example:**
+```bash
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","email":"test@example.com","password":"Test123456","nama_lengkap":"Test User"}'
+```
+
+---
+
+### 1.2 POST /auth/login
 
 Authenticate user and generate tokens.
 
@@ -50,16 +107,25 @@ POST /auth/login
 Content-Type: application/json
 
 {
-  "username": "test",
-  "password": "1234"
+  "username": "testuser",
+  "password": "Test123456"
 }
 ```
 
 **Response (200 OK):**
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "Bearer",
+  "expires_in": 1800,
+  "user": {
+    "id": 1,
+    "username": "testuser",
+    "email": "test@example.com",
+    "role": "OPERATOR",
+    "nama_lengkap": "Test User"
+  }
 }
 ```
 
@@ -67,7 +133,7 @@ Content-Type: application/json
 ```json
 {
   "statusCode": 401,
-  "message": "Invalid credentials"
+  "message": "Username atau password salah"
 }
 ```
 
@@ -75,12 +141,14 @@ Content-Type: application/json
 ```bash
 curl -X POST http://localhost:3000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"test","password":"1234"}'
+  -d '{"username":"testuser","password":"Test123456"}'
 ```
 
 ---
 
-### 1.2 POST /auth/refresh
+### 1.3 POST /auth/refresh
+
+### 1.3 POST /auth/refresh
 
 Refresh access token using refresh token.
 
@@ -97,8 +165,18 @@ Content-Type: application/json
 **Response (200 OK):**
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "Bearer",
+  "expires_in": 1800
+}
+```
+
+**Response (401 Unauthorized):**
+```json
+{
+  "statusCode": 401,
+  "message": "Refresh token tidak valid"
 }
 ```
 
@@ -111,7 +189,7 @@ curl -X POST http://localhost:3000/auth/refresh \
 
 ---
 
-### 1.3 GET /auth/profile
+### 1.4 GET /auth/profile
 
 Get current user profile.
 
@@ -124,14 +202,44 @@ Authorization: Bearer <ACCESS_TOKEN>
 **Response (200 OK):**
 ```json
 {
-  "username": "test",
-  "sub": "user-id-123"
+  "id": 1,
+  "username": "testuser",
+  "email": "test@example.com",
+  "role": "OPERATOR",
+  "nama_lengkap": "Test User",
+  "created_at": "2025-01-15T10:00:00.000Z",
+  "updated_at": "2025-01-15T10:00:00.000Z"
 }
 ```
 
 **cURL Example:**
 ```bash
 curl http://localhost:3000/auth/profile \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+### 1.5 POST /auth/logout
+
+Logout current user and invalidate refresh token.
+
+**Request:**
+```http
+POST /auth/logout
+Authorization: Bearer <ACCESS_TOKEN>
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "Logout successful"
+}
+```
+
+**cURL Example:**
+```bash
+curl -X POST http://localhost:3000/auth/logout \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

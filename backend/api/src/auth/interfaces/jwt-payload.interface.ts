@@ -1,4 +1,4 @@
-export interface JwtPayload extends Record<string, any> {
+export interface JwtPayload {
   sub: number;
   username: string;
   role: string;
@@ -6,7 +6,7 @@ export interface JwtPayload extends Record<string, any> {
   exp?: number;
 }
 
-export interface JwtRefreshPayload extends Record<string, any> {
+export interface JwtRefreshPayload {
   sub: number;
   tokenId: string;
   iat?: number;

@@ -9,12 +9,11 @@ services:
       POSTGRES_DB: ${DB_DATABASE:-aparat}
       POSTGRES_USER: ${DB_USERNAME:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d:ro
-    expose:
-      - "5432"
+      - ./backend/api/migrations:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
       interval: 10s
@@ -27,7 +26,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      target: production
+      target: development
     container_name: aparat-backend
     restart: unless-stopped
     depends_on:
@@ -37,49 +36,70 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: ${PORT:-3000}
       BASE_URL: ${BASE_URL:-http://localhost:3000}
-      
+
       # Database
-      DB_HOST: db
+      DB_HOST: db                # ⚠️ gunakan "db" agar container backend terhubung ke container db
       DB_PORT: 5432
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       DB_DATABASE: ${DB_DATABASE:-aparat}
       DATABASE_URL: postgresql://${DB_USERNAME:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_DATABASE:-aparat}
-      
+
       # JWT
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
-      
+
       # Security
       BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-10}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
-      
+
       # Swagger
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
       SWAGGER_PATH: ${SWAGGER_PATH:-api-docs}
-      
+
       # API Keys
       API_KEY: ${API_KEY}
-      
+
       # Upload
       UPLOAD_DIR: ${UPLOAD_DIR:-./uploads}
       MAX_FILE_SIZE: ${MAX_FILE_SIZE:-2097152}
       ALLOWED_FILE_TYPES: ${ALLOWED_FILE_TYPES:-.png,.jpg,.jpeg,.pdf}
     volumes:
+      - ./backend/api/src:/app/api/src
+      - ./backend/api/nest-cli.json:/app/api/nest-cli.json
+      - ./backend/api/tsconfig.json:/app/api/tsconfig.json
+      - ./backend/api/tsconfig.build.json:/app/api/tsconfig.build.json
       - ./backend/api/uploads:/app/api/uploads
       - api_logs:/app/api/logs
+      - /app/api/node_modules
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     networks:
       - aparat-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: DockerFile
+      target: deps
+    container_name: aparat-frontend-dev
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_API_BASE_PATH: /api/v1
+      NODE_ENV: development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
+    networks:
+      - aparat-network
+    command: npm run dev
 
 volumes:
   db_data:

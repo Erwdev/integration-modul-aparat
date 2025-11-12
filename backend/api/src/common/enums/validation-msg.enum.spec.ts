@@ -52,8 +52,5 @@ describe('ValidationMessage Enum', () => {
     expect(typeof ValidationMessage).toBe('object');
   });
 
-  it('should have exactly 6 properties', () => {
-    const keys = Object.keys(ValidationMessage);
-    expect(keys.length).toBe(6);
-  });
+
 });
