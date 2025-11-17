@@ -162,6 +162,27 @@ SELECT * FROM aparat_desa;
 
 ---
 
+## 📈 Load Testing (k6)
+
+Untuk melakukan load testing pada API menggunakan [k6](https://k6.io/):
+
+1. Pastikan file skrip k6 (`aparat-test.k6.js`) sudah ada di folder `backend/api/scripts`.
+2. Jalankan perintah berikut di terminal (PowerShell):
+
+```powershell
+docker run --rm -i `
+  --memory="1g" `
+  --cpus="4.0" `
+  -v "E:\PRPL\integration-modul-aparat\backend\api\scripts:/scripts" `
+  -w /scripts `
+  -e BASE_URL="http://host.docker.internal:3000" `
+  loadimpact/k6 run aparat-test.k6.js
+```
+
+- **BASE_URL** dapat disesuaikan sesuai alamat backend yang ingin diuji.
+- Hasil pengujian akan tampil di terminal.
+
+---
 ## 🗄️ Database Management
 
 ### View Current Schema
@@ -508,4 +529,3 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-

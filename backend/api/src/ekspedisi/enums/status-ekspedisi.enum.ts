@@ -1,0 +1,6 @@
+export enum StatusEkspedisi {
+  DALAM_PERJALANAN = 'DALAM_PERJALANAN',
+  TERKIRIM = 'TERKIRIM',
+  GAGAL = 'GAGAL',
+  DIKEMBALIKAN = 'DIKEMBALIKAN', 
+}

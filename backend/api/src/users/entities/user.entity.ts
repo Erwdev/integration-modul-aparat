@@ -4,21 +4,21 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  BeforeInsert,
-  BeforeUpdate,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn({ name: 'id_user' })
+  id: number;
 
   @Column({ unique: true })
   username: string;
 
-  @Column({ select: false }) // Hide password by default in queries
+  @Column({ select: false })
   password: string;
+
+  @Column({ unique: true })
+  email: string;
 
   @Column()
   role: string;
@@ -32,16 +32,8 @@ export class User {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @BeforeInsert()
-  @BeforeUpdate()
-  async hashPassword(): Promise<void> {
-    if (this.password) {
-      const hashedPassword = await bcrypt.hash(this.password, 10);
-      this.password = hashedPassword; // Use the variable
-    }
-  }
+  @Column({ nullable: true })
+  refresh_token: string;
 
-  async validatePassword(plainPassword: string): Promise<boolean> {
-    return bcrypt.compare(plainPassword, this.password);
-  }
 }
+

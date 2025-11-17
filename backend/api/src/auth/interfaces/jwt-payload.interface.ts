@@ -1,14 +1,14 @@
 export interface JwtPayload {
-  sub: number; // User ID (standard JWT claim)
+  sub: number;
   username: string;
   role: string;
-  iat?: number; // Issued at
-  exp?: number; // Expiration time
+  iat?: number;
+  exp?: number;
 }
 
 export interface JwtRefreshPayload {
   sub: number;
-  tokenId: string; // Unique ID untuk detect token reuse
+  tokenId: string;
   iat?: number;
   exp?: number;
 }
