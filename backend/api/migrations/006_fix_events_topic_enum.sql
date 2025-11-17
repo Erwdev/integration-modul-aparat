@@ -1,5 +1,4 @@
--- Drop hanya tabel events dan enum TOPIC_ENUM
-DROP TABLE IF EXISTS events CASCADE;
+-- Drop hanya enum jika perlu
 DO $$ BEGIN
   DROP TYPE IF EXISTS TOPIC_ENUM;
 EXCEPTION
@@ -11,7 +10,7 @@ DO $$ BEGIN
     CREATE TYPE TOPIC_ENUM AS ENUM(
       'surat.statusChanged',
       'aparat.updated',
-      'aparat.statusChanged', -- contoh value baru
+      'aparat.statusChanged',
       'aparat.created',
       'aparat.deleted',
       'ekspedisi.created'
@@ -20,16 +19,34 @@ EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
 
--- Buat ulang tabel events
-CREATE TABLE IF NOT EXISTS events (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    topic TOPIC_ENUM NOT NULL,
-    payload JSONB,
-    source_module VARCHAR(255) NOT NULL,
-    idempotency_key VARCHAR(255) UNIQUE NOT NULL,
-    status STATUS_ENUM NOT NULL DEFAULT 'pending',
-    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+-- Tambahkan kolom baru ke tabel events
+ALTER TABLE events ADD COLUMN IF NOT EXISTS retry_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS max_retries INTEGER NOT NULL DEFAULT 3;
 
--- ...lanjutkan index dan comment untuk tabel events seperti sebelumnya...
+-- ...existing code...
+ALTER TABLE events ADD COLUMN IF NOT EXISTS next_retry_at TIMESTAMP;
+
+ALTER TABLE events ADD COLUMN IF NOT EXISTS last_retry_at TIMESTAMP;
+
+-- ...existing code...
+ALTER TABLE events ADD COLUMN IF NOT EXISTS last_error TEXT;
+-- ...existing code...
+
+
+-- ...existing code...
+ALTER TABLE events ADD COLUMN IF NOT EXISTS error_history TEXT;
+-- ...existing code...
+
+
+-- ...existing code...
+ALTER TABLE events ADD COLUMN IF NOT EXISTS moved_to_dlq_at TIMESTAMP;
+-- ...existing code...
+
+-- ...existing code...
+ALTER TABLE events ADD COLUMN IF NOT EXISTS dlq_reason TEXT;
+
+-- ...existing code...
+ALTER TABLE events ADD COLUMN IF NOT EXISTS is_dlq BOOLEAN NOT NULL DEFAULT FALSE;
+-- ...existing code...
+-- ...existing code...
+-- ...existing code...

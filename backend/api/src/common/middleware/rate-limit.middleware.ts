@@ -14,9 +14,9 @@ export class RateLimitMiddleware implements NestMiddleware {
   private buckets: Map<string, Bucket> = new Map();
 
   constructor(private readonly configService: ConfigService) {
-    this.bucketSize = Number(this.configService.get('RATE_LIMIT_BUCKET_SIZE', 1000));
-    this.refillRate = Number(this.configService.get('RATE_LIMIT_BUCKET_REFILL_RATE', 20));
-    this.refillInterval = Number(this.configService.get('RATE_LIMIT_BUCKET_REFILL_INTERVAL_MS', 1000));
+    this.bucketSize = Number(this.configService.get('RATE_LIMIT_BUCKET_SIZE', 2000));
+    this.refillRate = Number(this.configService.get('RATE_LIMIT_BUCKET_REFILL_RATE', 1000));
+    this.refillInterval = Number(this.configService.get('RATE_LIMIT_BUCKET_REFILL_INTERVAL_MS', 2000));
   }
 
   use(req: any, res: any, next: () => void) {

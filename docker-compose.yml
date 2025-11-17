@@ -71,7 +71,8 @@ services:
       - ./backend/api/nest-cli.json:/app/api/nest-cli.json
       - ./backend/api/tsconfig.json:/app/api/tsconfig.json
       - ./backend/api/tsconfig.build.json:/app/api/tsconfig.build.json
-      - ./backend/api/uploads:/app/api/uploads
+      # - ./backend/api/uploads:/app/api/uploads
+      - /tmp/aparat-uploads:/app/api/uploads
       - api_logs:/app/api/logs
       - /app/api/node_modules
     ports:

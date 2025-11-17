@@ -14,7 +14,20 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ============================================
 
 DO $$ BEGIN
-    CREATE TYPE TOPIC_ENUM AS ENUM('surat.statusChanged', 'aparat.updated', 'ekspedisi.created');
+    DROP TYPE IF EXISTS TOPIC_ENUM;
+EXCEPTION
+    WHEN undefined_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE TOPIC_ENUM AS ENUM(
+      'surat.statusChanged',
+      'aparat.updated',
+      'aparat.statusChanged',
+      'aparat.created',
+      'aparat.deleted',
+      'ekspedisi.created'
+    );
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
@@ -35,13 +48,17 @@ END $$;
 -- TABLE: events
 -- ============================================
 
-CREATE TABLE IF NOT EXISTS events (
+DROP TABLE IF EXISTS events CASCADE;
+
+CREATE TABLE events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     topic TOPIC_ENUM NOT NULL,
     payload JSONB,
     source_module VARCHAR(255) NOT NULL,
     idempotency_key VARCHAR(255) UNIQUE NOT NULL,
     status STATUS_ENUM NOT NULL DEFAULT 'pending',
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    max_retries INTEGER NOT NULL DEFAULT 3,
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -64,29 +81,19 @@ CREATE TABLE IF NOT EXISTS events_acknowledgements (
 -- INDEXES
 -- ============================================
 
--- Index untuk performa (idempotent)
 CREATE INDEX IF NOT EXISTS idx_events_topic ON events(topic);
 CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp);
 CREATE INDEX IF NOT EXISTS idx_events_idempotency_key ON events(idempotency_key);
 CREATE INDEX IF NOT EXISTS idx_events_status ON events(status);
 CREATE INDEX IF NOT EXISTS idx_events_source_module ON events(source_module);
 
--- ✅ COMPOSITE INDEXES (multiple columns)
--- For queries like: SELECT * FROM events WHERE topic = 'surat.statusChanged' ORDER BY timestamp DESC
 CREATE INDEX IF NOT EXISTS idx_events_topic_timestamp ON events(topic, timestamp DESC);
-
--- For queries like: SELECT * FROM events WHERE status = 'pending' ORDER BY timestamp ASC
 CREATE INDEX IF NOT EXISTS idx_events_status_timestamp ON events(status, timestamp ASC);
-
--- For queries like: SELECT * FROM events WHERE topic = 'surat.statusChanged' AND status = 'pending'
 CREATE INDEX IF NOT EXISTS idx_events_topic_status ON events(topic, status);
 
--- Indexes for acknowledgements table
 CREATE INDEX IF NOT EXISTS idx_ack_event_id ON events_acknowledgements(event_id);
 CREATE INDEX IF NOT EXISTS idx_ack_consumer_module ON events_acknowledgements(consumer_module);
 CREATE INDEX IF NOT EXISTS idx_ack_processing_status ON events_acknowledgements(processing_status);
-
--- ✅ Composite index for finding unacknowledged events by specific consumer
 CREATE INDEX IF NOT EXISTS idx_ack_event_consumer ON events_acknowledgements(event_id, consumer_module);
 
 -- ============================================
