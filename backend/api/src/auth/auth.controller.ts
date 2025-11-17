@@ -5,6 +5,7 @@ import {
   Headers,
   BadRequestException,
   Get,
+  Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto, ChangePasswordDto } from './dto/login.dto';
@@ -16,15 +17,17 @@ import {
 } from './dto/auth-response.dto';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { Repository } from 'typeorm/repository/Repository';
 import { User } from 'src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm/dist/common/typeorm.decorators';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { Logger } from '@nestjs/common';
-
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Role } from 'src/common/enums/roles.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
+@ApiTags('auth')
+@ApiBearerAuth('JWT-auth')
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
@@ -34,7 +37,20 @@ export class AuthController {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
-  @Throttle({ default: { limit: 5, ttl: 3600000 } })
+
+  @Post('users/:id/role')
+  @Roles(Role.ADMIN)
+  async updateUserRole(
+    @CurrentUser() admin: JwtPayload,
+    @Body('role') role: string,
+    @Headers('authorization') authHeader: string,
+    @Param('id') id:number
+  ): Promise<{ message: string }> {
+    await this.userRepository.update(id, { role });
+    return { message: `Role user ${id} updated to ${role}` };
+  }
+
+  @Throttle({ default: { limit: 10, ttl: 3600000 } })
   @Public()
   @Post('login')
   async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
