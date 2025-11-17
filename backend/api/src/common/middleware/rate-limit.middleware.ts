@@ -1,51 +1,47 @@
-import {
-  Injectable,
-  NestMiddleware,
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
+import { Injectable, NestMiddleware } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
-// 🧠 Fallback untuk TooManyRequestsException (karena belum ada di Nest versi <11)
-export class TooManyRequestsException extends HttpException {
-  constructor(message?: string) {
-    super(message || 'Too Many Requests', HttpStatus.TOO_MANY_REQUESTS);
-  }
+interface Bucket {
+  tokens: number;
+  lastRefill: number;
 }
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
-  private requests = new Map<string, { count: number; lastReset: number }>();
+  private bucketSize: number;
+  private refillRate: number;
+  private refillInterval: number;
+  private buckets: Map<string, Bucket> = new Map();
 
-  use(req: Request, res: Response, next: NextFunction) {
-    const key = req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
+  constructor(private readonly configService: ConfigService) {
+    this.bucketSize = Number(this.configService.get('RATE_LIMIT_BUCKET_SIZE', 2000));
+    this.refillRate = Number(this.configService.get('RATE_LIMIT_BUCKET_REFILL_RATE', 1000));
+    this.refillInterval = Number(this.configService.get('RATE_LIMIT_BUCKET_REFILL_INTERVAL_MS', 2000));
+  }
+
+  use(req: any, res: any, next: () => void) {
+    const key = req.ip || req.connection.remoteAddress;
     const now = Date.now();
-    const windowMs = 60 * 1000; // 1 menit
-    const limit = 1000; // 1000 request per menit per IP
 
-    // Ambil data sebelumnya, atau buat baru kalau belum ada
-    let data = this.requests.get(key);
-    if (!data) {
-      data = { count: 1, lastReset: now };
-      this.requests.set(key, data);
+    let bucket = this.buckets.get(key);
+    if (!bucket) {
+      bucket = { tokens: this.bucketSize, lastRefill: now };
+      this.buckets.set(key, bucket);
+    }
+
+    // Refill tokens if needed
+    const elapsed = now - bucket.lastRefill;
+    if (elapsed > this.refillInterval) {
+      const refillCount = Math.floor(elapsed / this.refillInterval) * this.refillRate;
+      bucket.tokens = Math.min(this.bucketSize, bucket.tokens + refillCount);
+      bucket.lastRefill = now;
+    }
+
+    if (bucket.tokens > 0) {
+      bucket.tokens -= 1;
+      next();
     } else {
-      // Reset window jika sudah lewat
-      if (now - data.lastReset > windowMs) {
-        data.count = 1;
-        data.lastReset = now;
-      } else {
-        data.count++;
-      }
+      res.status(429).json({ message: 'Too many requests, please try again later.' });
     }
-
-    // Jika melebihi limit → lempar error 429
-    if (data.count > limit) {
-      throw new TooManyRequestsException(
-        `Rate limit exceeded (${limit} requests/minute)`,
-      );
-    }
-
-    next();
   }
 }

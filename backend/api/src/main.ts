@@ -5,12 +5,30 @@ import { ValidationPipe } from '@nestjs/common';
 import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 import { AuditLoggerMiddleware } from './common/middleware/audit-logger.middleware';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import * as express from 'express';
+import * as path from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'debug', 'log', 'verbose'],
   });
+
+  app.use(
+    '/uploads',
+    express.static(path.join(process.cwd(), 'uploads')),
+  );
+
   const configService = app.get(ConfigService);
+  app.use(
+    helmet({
+      contentSecurityPolicy:
+        process.env.NODE_ENV === 'production' ? undefined : false,
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
+  // app.useGlobalFilters(new AllExceptionsFilter)
 
   // ✅ Global ValidationPipe (supaya DTO auto-validasi)
   app.useGlobalPipes(
@@ -67,7 +85,7 @@ async function bootstrap() {
   });
 
   // ✅ Aktifkan middleware global kamu
-  const rateLimiter = new RateLimitMiddleware();
+  const rateLimiter = new RateLimitMiddleware(configService);
   const auditLogger = new AuditLoggerMiddleware();
 
   app.use(rateLimiter.use.bind(rateLimiter));
@@ -84,7 +102,9 @@ async function bootstrap() {
 
   await app.listen(port);
   console.log(`🚀 Application is running on: http://${host}:${port}`);
-  console.log(`📖 Swagger docs available at: http://localhost:${port}/api/docs`);
+  console.log(
+    `📖 Swagger docs available at: http://localhost:${port}/api/docs`,
+  );
   console.log(
     `📖 Environment: ${configService.get('NODE_ENV', 'development')}`,
   );

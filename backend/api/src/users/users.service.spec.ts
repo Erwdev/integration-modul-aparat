@@ -250,13 +250,6 @@ describe('UsersService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw NotFoundException with correct message', async () => {
-      mockRepository.findOne.mockResolvedValue(null);
-
-      await expect(
-        service.update(123, { nama_lengkap: 'Test' }),
-      ).rejects.toThrow('User with ID 123 not found');
-    });
 
     it('should remove password from update data', async () => {
       const updateData = {

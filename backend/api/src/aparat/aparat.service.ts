@@ -12,8 +12,8 @@ import { CreateAparatDto } from './dto/create-aparat.dto';
 import { UpdateAparatDto } from './dto/update-aparat.dto';
 import { FilterAparatDto } from './dto/filter-aparat.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { EventTopic, SourceModule } from '../events/enums'; 
-import { EventsService } from '../events/events.service'; 
+import { EventTopic, SourceModule } from '../events/enums';
+import { EventsService } from '../events/events.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -147,7 +147,10 @@ export class AparatService {
       }
 
       // ✅ Generic error
-      this.logger.error(`Failed to create aparat: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create aparat: ${error.message}`,
+        error.stack,
+      );
       throw new BadRequestException({
         message: 'Failed to create aparat',
         error: 'CREATE_FAILED',
@@ -160,31 +163,44 @@ export class AparatService {
    * Find all aparat with filters and pagination
    */
   async findAll(filter?: FilterAparatDto) {
+    this.logger.debug(
+      '📌 findAll() called with filter: ' + JSON.stringify(filter),
+    );
+
     const qb = this.repo.createQueryBuilder('a');
 
-    // ✅ Apply filters
+    // Filters
     if (filter?.nama) {
+      this.logger.debug(`Filter applied: nama ILIKE %${filter.nama}%`);
       qb.andWhere('a.nama ILIKE :nama', { nama: `%${filter.nama}%` });
     }
     if (filter?.status) {
+      this.logger.debug(`Filter applied: status = ${filter.status}`);
       qb.andWhere('a.status = :status', { status: filter.status });
     }
     if (filter?.jabatan) {
       const arr = filter.jabatan.split(',').map((s) => s.trim());
+      this.logger.debug(`Filter applied: jabatan IN ${arr.join(', ')}`);
       qb.andWhere('a.jabatan IN (:...jabatan)', { jabatan: arr });
     }
 
-    // ✅ Sorting
+    // Sorting
     const sortBy = filter?.sortBy ?? 'updated_at';
     const order = (filter?.order ?? 'DESC').toUpperCase() as 'ASC' | 'DESC';
+    this.logger.debug(`Sorting: ${sortBy} ${order}`);
     qb.orderBy(`a.${sortBy}`, order);
 
-    // ✅ Pagination
+    // Pagination
     const page = Math.max(1, Number(filter?.page ?? 1));
     const limit = Math.min(100, Number(filter?.limit ?? 20));
+    this.logger.debug(`Pagination: page=${page}, limit=${limit}`);
+
     qb.skip((page - 1) * limit).take(limit);
 
+    // Execute
     const [data, total] = await qb.getManyAndCount();
+
+    this.logger.debug(`Query returned: ${data.length} items of total ${total}`);
 
     return {
       data,
@@ -222,10 +238,10 @@ export class AparatService {
     try {
       // ✅ 1. Get existing data first (to check if exists)
       const item = await this.findOne(id);
-      
+
       // ✅ 2. Validate uniqueness (bisa throw ConflictException)
       await this.ensureUniqueNikNip(dto.nik, dto.nip, id);
-      
+
       // ✅ 3. Store old values before update
       const oldValues = {
         nip: item.nip,
@@ -235,13 +251,13 @@ export class AparatService {
         pangkat_golongan: item.pangkat_golongan,
         status: item.status,
       };
-      
+
       // ✅ 4. Update fields
       Object.assign(item, dto);
-      
+
       // ✅ 5. Save
       const saved = await this.repo.save(item);
-      
+
       // ✅ 6. Publish event APARAT_UPDATED (HANYA JIKA BERHASIL!)
       await this.eventsService.publishEvent({
         topic: EventTopic.APARAT_UPDATED,
@@ -259,7 +275,7 @@ export class AparatService {
           updatedAt: saved.updated_at,
         },
         source_module: SourceModule.APARAT,
-        idempotency_key: this.generateIdempotencyKey('aparat-update', {
+        idempotency_key: this.generateIdempotencyKey('aparat-status', {
           id: saved.id_aparat,
           changes: dto,
           timestamp: saved.updated_at,
@@ -285,7 +301,10 @@ export class AparatService {
 
       // ✅ Handle database errors
       if (error.code === '23505') {
-        this.logger.error(`Duplicate constraint on update: ${error.detail}`, error.stack);
+        this.logger.error(
+          `Duplicate constraint on update: ${error.detail}`,
+          error.stack,
+        );
         throw new ConflictException({
           message: 'NIK or NIP already exists',
           error: 'DUPLICATE_CONSTRAINT',
@@ -294,7 +313,10 @@ export class AparatService {
       }
 
       if (error.code === '23503') {
-        this.logger.error(`Foreign key violation on update: ${error.detail}`, error.stack);
+        this.logger.error(
+          `Foreign key violation on update: ${error.detail}`,
+          error.stack,
+        );
         throw new BadRequestException({
           message: 'Invalid reference data',
           error: 'INVALID_REFERENCE',
@@ -303,7 +325,10 @@ export class AparatService {
       }
 
       // ✅ Generic error
-      this.logger.error(`Failed to update aparat ${id}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to update aparat ${id}: ${error.message}`,
+        error.stack,
+      );
       throw new BadRequestException({
         message: 'Failed to update aparat',
         error: 'UPDATE_FAILED',
@@ -406,7 +431,10 @@ export class AparatService {
         throw error;
       }
 
-      this.logger.error(`Failed to delete aparat ${id}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to delete aparat ${id}: ${error.message}`,
+        error.stack,
+      );
       throw new BadRequestException({
         message: 'Failed to delete aparat',
         error: 'DELETE_FAILED',

@@ -1,8 +1,8 @@
-
 import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { LoginDto, RegisterDto, LogoutDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -20,13 +20,16 @@ import { User } from 'src/users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-
+import { BanRepository } from './repositories/ban.repository';
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
+    private readonly banRepository: BanRepository
   ) {}
 
   private parseExpiresIn(expiresIn: string): number {
@@ -108,18 +111,17 @@ export class AuthService {
       throw new UnauthorizedException('Username atau password salah');
     }
 
-    console.log('🔍 LOGIN DEBUG:');
-    console.log('Username:', loginDto.username);
-    console.log('Plain Password:', loginDto.password);
-    console.log('Hashed Password:', user.password);
-    console.log('Password exists:', !!user.password);
-    console.log('Password length:', user.password?.length);
+    this.logger.debug('🔍 LOGIN DEBUG:');
+    this.logger.debug(`Username: ${loginDto.username}`);
+    this.logger.debug(`Password exists: ${!!user.password}`);
+    this.logger.debug(`Password length: ${user.password?.length}`);
 
     const isPasswordValid = await this.usersService.validatePassword(
       loginDto.password,
       user.password,
     );
-    console.log('Password Valid:', isPasswordValid);
+    this.logger.debug(`Password Valid: ${isPasswordValid}`);
+
     if (!isPasswordValid) {
       throw new UnauthorizedException('Username atau password salah');
     }
@@ -153,10 +155,9 @@ export class AuthService {
 
   async refresh(refreshTokenDto: RefreshTokenDto): Promise<RefreshResponseDto> {
     try {
-      console.log('🔄 REFRESH DEBUG:');
-      console.log(
-        'Token received:',
-        refreshTokenDto.refreshToken?.substring(0, 30) + '...',
+      this.logger.debug('🔄 REFRESH DEBUG:');
+      this.logger.debug(
+        `Token received: ${refreshTokenDto.refreshToken ? '[REDACTED]' : 'None'}`,
       );
 
       const decoded = this.jwtService.verify<JwtPayload>(
@@ -168,7 +169,6 @@ export class AuthService {
         },
       );
 
-      // decoded.sub is string; convert to number for DB lookup
       const userId = decoded.sub;
       const user = await this.usersService.findById(userId);
 
@@ -199,7 +199,7 @@ export class AuthService {
         expires_in: expiresInSeconds,
       };
     } catch (error) {
-      console.error('❌ REFRESH ERROR:', error);
+      this.logger.error('❌ REFRESH ERROR:', error);
       if (error instanceof TokenExpiredError) {
         throw new UnauthorizedException('Refresh token sudah kadaluarsa');
       }
@@ -225,6 +225,19 @@ export class AuthService {
       created_at: user.created_at,
       updated_at: user.updated_at,
     };
+  }
+
+  async trackViolation(userId: number): Promise<void>{
+    const ban = await this.banRepository.findOrCreate(userId);
+
+    ban.violationCount +=1;
+
+    if(ban.violationCount >=5){
+      ban.isBanned = true;
+      ban.banExpiresAt = new Date(Date.now() + 3600 * 1000); // 1 hour ban
+    }
+
+    await this.banRepository.save(ban)
   }
 
   async logout(userId: number): Promise<{ message: string }> {

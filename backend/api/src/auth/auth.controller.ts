@@ -5,6 +5,7 @@ import {
   Headers,
   BadRequestException,
   Get,
+  Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto, ChangePasswordDto } from './dto/login.dto';
@@ -16,28 +17,47 @@ import {
 } from './dto/auth-response.dto';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { UseGuards } from '@nestjs/common';
-
+import { Throttle } from '@nestjs/throttler';
 import { Repository } from 'typeorm/repository/Repository';
 import { User } from 'src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm/dist/common/typeorm.decorators';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-
+import { Logger } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Role } from 'src/common/enums/roles.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
+@ApiTags('auth')
+@ApiBearerAuth('JWT-auth')
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private readonly authService: AuthService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
 
+  @Post('users/:id/role')
+  @Roles(Role.ADMIN)
+  async updateUserRole(
+    @CurrentUser() admin: JwtPayload,
+    @Body('role') role: string,
+    @Headers('authorization') authHeader: string,
+    @Param('id') id:number
+  ): Promise<{ message: string }> {
+    await this.userRepository.update(id, { role });
+    return { message: `Role user ${id} updated to ${role}` };
+  }
+
+  @Throttle({ default: { limit: 10, ttl: 3600000 } })
   @Public()
   @Post('login')
   async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
     return this.authService.login(loginDto);
   }
 
+  @Throttle({ default: { limit: 3, ttl: 3600000 } })
   @Public()
   @Post('register')
   async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
@@ -50,6 +70,7 @@ export class AuthController {
     return { message: 'Logout successful' };
   }
 
+  @Throttle({ default: { limit: 10, ttl: 3600000 } })
   @Public()
   @Post('refresh')
   async refresh(
@@ -57,26 +78,20 @@ export class AuthController {
     @Body() body?: RefreshTokenDto,
   ): Promise<RefreshResponseDto> {
     // ✅ ADD DEBUG LOGGING
-    console.log('🔍 REFRESH CONTROLLER DEBUG:');
-    console.log('Authorization Header:', authHeader);
-    console.log('Body:', body);
+    this.logger.debug('🔍 REFRESH CONTROLLER DEBUG:');
+    this.logger.debug(`Authorization Header: ${authHeader ? '[REDACTED]' : 'None'}`);
+    this.logger.debug(`Body: ${body ? '[REDACTED]' : 'None'}`);
 
     const tokenFromHeader = authHeader?.startsWith('Bearer ')
       ? authHeader.substring(7)
       : undefined;
 
-    console.log(
-      'Token from Header:',
-      tokenFromHeader?.substring(0, 20) + '...',
-    );
-    console.log(
-      'Token from Body:',
-      body?.refreshToken?.substring(0, 20) + '...',
-    );
+    this.logger.debug(`Token from Header: ${tokenFromHeader ? '[REDACTED]' : 'None'}`);
+    this.logger.debug(`Token from Body: ${body?.refreshToken ? '[REDACTED]' : 'None'}`);
 
     const refreshToken = tokenFromHeader ?? body?.refreshToken;
 
-    console.log('Final Token Used:', refreshToken?.substring(0, 20) + '...');
+    this.logger.debug(`Final Token Used: ${refreshToken ? '[REDACTED]' : 'None'}`);
 
     if (!refreshToken) {
       throw new BadRequestException('Refresh token tidak ditemukan');
@@ -89,7 +104,7 @@ export class AuthController {
   async getProfile(
     @CurrentUser() user: JwtPayload,
   ): Promise<ProfileResponseDto> {
-    console.log('Current User:', user);
+    this.logger.debug(`Current User: ${user ? '[REDACTED]' : 'None'}`);
     return this.authService.getProfile(user.sub);
   }
 
