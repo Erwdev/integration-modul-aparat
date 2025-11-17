@@ -1,13 +1,13 @@
 import { useTheme } from '@/context/ThemeContext';
 import { MoonIcon, SunIcon, ChevronLeftIcon, ChevronRightIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { UserGroupIcon, TruckIcon, DocumentTextIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { UserGroupIcon, TruckIcon, DocumentTextIcon, ChartBarIcon,EyeIcon } from '@heroicons/react/24/outline';
 import Logo from '@/components/ui/logo';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
-  activeMenu?: 'aparat' | 'ekspedisi' | 'surat' | 'reports';
+  activeMenu?: 'aparat' | 'reports' | 'admin' | 'viewer';
 }
 
 const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
@@ -46,22 +46,22 @@ const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
       value: 'aparat'
     },
     {
-      href: '/ekspedisi',
-      label: 'Ekspedisi',
-      icon: TruckIcon,
-      value: 'ekspedisi'
-    },
-    {
-      href: '/surat',
-      label: 'Surat',
-      icon: DocumentTextIcon,
-      value: 'surat'
-    },
-    {
       href: '/reports',
       label: 'Laporan',
       icon: ChartBarIcon,
       value: 'reports'
+    },
+        {
+      href: '/admin',
+      label: 'Admin',
+      icon: DocumentTextIcon,
+      value: 'admin'
+    },
+        {
+      href: '/viewer',
+      label: 'Viewer',
+      icon: EyeIcon,
+      value: 'viewer'
     }
   ];
 

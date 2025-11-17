@@ -2,8 +2,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Users, Database, Mail, Phone, MapPin, Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
 import CountUp from "react-countup";
 import { useTheme } from "@/context/ThemeContext";
 import Logo from "@/components/ui/logo";
@@ -14,35 +12,49 @@ export default function Home() {
   const footerTextRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Register ScrambleTextPlugin
-    gsap.registerPlugin(ScrambleTextPlugin);
+    // Dynamic import GSAP to avoid ESM issues
+    const loadAnimations = async () => {
+      try {
+        const { gsap } = await import("gsap");
+        const { ScrambleTextPlugin } = await import("gsap/ScrambleTextPlugin");
+        
+        // Register ScrambleTextPlugin
+        gsap.registerPlugin(ScrambleTextPlugin);
 
-    // Set isLoaded for other animations
-    setIsLoaded(true);
+        // Set isLoaded for other animations
+        setIsLoaded(true);
 
-    // Scramble text animation
-    if (scrambleTextRef.current) {
-      gsap.to(scrambleTextRef.current, {
-        duration: 2,
-        scrambleText: {
-          text: "Data Aparat",
-          chars: "0123456789",
-          revealDelay: 0.5,
-          speed: 0.3,
-        },
-      });
-    }
+        // Scramble text animation
+        if (scrambleTextRef.current) {
+          gsap.to(scrambleTextRef.current, {
+            duration: 2,
+            scrambleText: {
+              text: "Data Aparat",
+              chars: "0123456789",
+              revealDelay: 0.5,
+              speed: 0.3,
+            },
+          });
+        }
 
-    // Footer text reveal animation
-    if (footerTextRef.current) {
-      gsap.from(footerTextRef.current.children, {
-        duration: 0.8,
-        y: 20,
-        opacity: 0,
-        stagger: 0.2,
-        delay: 1,
-      });
-    }
+        // Footer text reveal animation
+        if (footerTextRef.current) {
+          gsap.from(footerTextRef.current.children, {
+            duration: 0.8,
+            y: 20,
+            opacity: 0,
+            stagger: 0.2,
+            delay: 1,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load GSAP:", error);
+        // Fallback: just set isLoaded without animations
+        setIsLoaded(true);
+      }
+    };
+
+    loadAnimations();
   }, []);
 
   const { isDarkMode, toggleDarkMode } = useTheme();

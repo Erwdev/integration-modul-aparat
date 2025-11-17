@@ -22,6 +22,11 @@ self.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
+    "/admin": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/admin.js"
+    ],
     "/aparat": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
@@ -31,6 +36,16 @@ self.__BUILD_MANIFEST = {
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/reports.js"
+    ],
+    "/viewer": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/viewer.js"
+    ],
+    "/viewer/reports": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/viewer/reports.js"
     ]
   },
   "ampFirstPages": []

@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { User, Lock, Mail, ArrowRight, Moon, Sun } from "lucide-react"
-import { gsap } from "gsap"
 import { useTheme } from "@/context/ThemeContext"
 import Logo from "@/components/ui/logo"
 
@@ -57,23 +56,34 @@ export default function SignInPage() {
   }
 
   useEffect(() => {
-    // Animasi card masuk
-    gsap.from(".login-card", {
-      y: -50,
-      opacity: 0,
-      duration: 0.8,
-      ease: "power3.out"
-    });
+    // Dynamic import GSAP to avoid ESM issues
+    const loadAnimations = async () => {
+      try {
+        const { gsap } = await import("gsap");
+        
+        // Animasi card masuk
+        gsap.from(".login-card", {
+          y: -50,
+          opacity: 0,
+          duration: 0.8,
+          ease: "power3.out"
+        });
 
-    // Animasi form elements stagger
-    gsap.from(".animate-form-element", {
-      y: 20,
-      opacity: 0,
-      stagger: 0.1,
-      duration: 0.5,
-      delay: 0.3,
-      ease: "power2.out"
-    });
+        // Animasi form elements stagger
+        gsap.from(".animate-form-element", {
+          y: 20,
+          opacity: 0,
+          stagger: 0.1,
+          duration: 0.5,
+          delay: 0.3,
+          ease: "power2.out"
+        });
+      } catch (error) {
+        console.error("Failed to load GSAP:", error);
+      }
+    };
+
+    loadAnimations();
   }, []);
 
   return (

@@ -3,5 +3,8 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/aparat": "pages/aparat.js",
+  "/admin": "pages/admin.js",
+  "/viewer": "pages/viewer.js",
+  "/viewer/reports": "pages/viewer/reports.js",
   "/reports": "pages/reports.js"
 }
