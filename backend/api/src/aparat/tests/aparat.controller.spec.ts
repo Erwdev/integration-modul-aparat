@@ -21,7 +21,6 @@ describe('AparatController', () => {
     tanggal_lahir: new Date('1990-01-01'),
     jabatan: 'Lurah',
     status: StatusAparat.AKTIF,
-    nomor_urut: 1,
     version: 1,
     created_at: new Date(),
     updated_at: new Date(),

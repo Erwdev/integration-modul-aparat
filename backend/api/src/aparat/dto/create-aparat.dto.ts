@@ -32,4 +32,6 @@ export class CreateAparatDto {
   @IsOptional() tanda_tangan_url?: string;
 
   @IsOptional() @IsEnum(StatusAparat) status?: StatusAparat;
+
+
 }

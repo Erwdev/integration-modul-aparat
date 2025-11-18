@@ -75,15 +75,15 @@ export class AparatService {
       // ✅ Validate uniqueness
       await this.ensureUniqueNikNip(dto.nik, dto.nip);
 
-      // ✅ Generate nomor urut
-      const maxUrut = await this.repo
-        .createQueryBuilder('a')
-        .select('MAX(a.nomor_urut)', 'max')
-        .getRawOne();
-      const next = (maxUrut?.max ?? 0) + 1;
+      // // ✅ Generate nomor urut
+      // const maxUrut = await this.repo
+      //   .createQueryBuilder('a')
+      //   .select('MAX(a.nomor_urut)', 'max')
+      //   .getRawOne();
+      // const next = (maxUrut?.max ?? 0) + 1;
 
       // ✅ Create and save
-      const aparat = this.repo.create({ ...dto, nomor_urut: next });
+      const aparat = this.repo.create({ ...dto });
       const savedAparat = await this.repo.save(aparat);
 
       // ✅ Emit event APARAT_CREATED
@@ -96,7 +96,6 @@ export class AparatService {
           nama: savedAparat.nama,
           jabatan: savedAparat.jabatan,
           pangkat_golongan: savedAparat.pangkat_golongan,
-          nomor_urut: savedAparat.nomor_urut,
           createdAt: savedAparat.created_at,
         },
         source_module: SourceModule.APARAT,

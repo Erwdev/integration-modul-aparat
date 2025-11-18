@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   Index,
   BeforeUpdate,
+  Generated,
 } from 'typeorm';
 import { StatusAparat } from '../enums/status-aparat.enum';
 import { Jabatan } from '../enums/jabatan.enum';
@@ -15,8 +16,8 @@ export class Aparat {
   @PrimaryGeneratedColumn('uuid')
   id_aparat: string;
 
-  @Column({ type: 'int', unique: true })
-  nomor_urut: number;
+  // @Column({ type: 'int', unique: true })
+  // nomor_urut: number;
 
   @Column({ type: 'varchar', length: 255 })
   nama: string;
