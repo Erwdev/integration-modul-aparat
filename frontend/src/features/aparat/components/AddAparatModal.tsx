@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import type { AparatFormData } from "../types";
+import { uploadSignature } from "../api/aparatApi"; // Import fungsi upload
 
 interface AddAparatModalProps {
   isOpen: boolean;
@@ -32,12 +33,15 @@ const AddAparatModal = ({ isOpen, onClose, onSubmit }: AddAparatModalProps) => {
     skPengangkatanTanggal: "",
     skPemberhentianNomor: "",
     skPemberhentianTanggal: "",
+    tandaTanganUrl: "", // Field untuk URL
     status: "AKTIF" as any,
   };
 
   const [formData, setFormData] = useState<AparatFormData>(initialData);
+  const [file, setFile] = useState<File | null>(null); // State untuk file
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.nama || !formData.nik || !formData.jabatan || !formData.agama || !formData.tempatLahir || !formData.tanggalLahir) {
       alert("Mohon lengkapi field bertanda bintang (*)!");
       return;
@@ -46,8 +50,33 @@ const AddAparatModal = ({ isOpen, onClose, onSubmit }: AddAparatModalProps) => {
       alert("NIK harus 16 digit angka.");
       return;
     }
-    onSubmit(formData);
+
+    let finalData = { ...formData };
+
+    // 1. Cek apakah ada file yang dipilih
+    if (file) {
+      try {
+        setIsUploading(true);
+        // 2. Upload file ke backend
+        const url = await uploadSignature(file);
+        // 3. Masukkan URL hasil upload ke data yang akan disimpan
+        finalData.tandaTanganUrl = url;
+      } catch (error) {
+        console.error("Gagal upload tanda tangan:", error);
+        alert("Gagal mengupload tanda tangan. Data tidak tersimpan.");
+        setIsUploading(false);
+        return; // Batalkan simpan jika upload gagal
+      } finally {
+        setIsUploading(false);
+      }
+    }
+
+    // 4. Kirim data lengkap (termasuk URL tanda tangan jika ada)
+    onSubmit(finalData);
+    
+    // Reset
     setFormData(initialData);
+    setFile(null);
     onClose();
   };
 
@@ -56,7 +85,9 @@ const AddAparatModal = ({ isOpen, onClose, onSubmit }: AddAparatModalProps) => {
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Tambah Aparat Baru</DialogTitle>
-          <DialogDescription>Field bertanda (<span className="text-red-500">*</span>) wajib diisi.</DialogDescription>
+          <DialogDescription>
+            Lengkapi data di bawah ini.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
@@ -71,7 +102,7 @@ const AddAparatModal = ({ isOpen, onClose, onSubmit }: AddAparatModalProps) => {
               <Input value={formData.nik} maxLength={16} onChange={(e) => setFormData({ ...formData, nik: e.target.value.replace(/\D/g, '') })} />
             </div>
             <div className="grid gap-2">
-              <Label>NIP/NIAPD <span className="text-gray-400 text-xs">(Opsional)</span></Label>
+              <Label>NIP/NIAPD</Label>
               <Input value={formData.nip} onChange={(e) => setFormData({ ...formData, nip: e.target.value })} />
             </div>
           </div>
@@ -116,13 +147,12 @@ const AddAparatModal = ({ isOpen, onClose, onSubmit }: AddAparatModalProps) => {
             </div>
           </div>
 
-          {/* ✅ PERBAIKAN JABATAN: Value harus sesuai Enum Backend */}
+          {/* Jabatan */}
           <div className="grid gap-2">
             <Label>Jabatan <span className="text-red-500">*</span></Label>
             <Select value={formData.jabatan} onValueChange={(val) => setFormData({ ...formData, jabatan: val })}>
               <SelectTrigger><SelectValue placeholder="Pilih Jabatan" /></SelectTrigger>
               <SelectContent>
-                {/* Value di sini harus SAMA PERSIS dengan Enum di Backend */}
                 <SelectItem value="Lurah">Lurah / Kepala Desa</SelectItem>
                 <SelectItem value="Sekretaris Desa">Sekretaris Desa</SelectItem>
                 <SelectItem value="Kepala Urusan Tata Usaha dan Umum">Kaur TU & Umum</SelectItem>
@@ -137,19 +167,18 @@ const AddAparatModal = ({ isOpen, onClose, onSubmit }: AddAparatModalProps) => {
             </Select>
           </div>
 
-          {/* Opsional Lainnya */}
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label>Pangkat/Golongan</Label>
               <Input value={formData.pangkatGolongan} onChange={(e) => setFormData({ ...formData, pangkatGolongan: e.target.value })} />
             </div>
             <div className="grid gap-2">
-              <Label>Pendidikan Terakhir</Label>
+              <Label>Pendidikan</Label>
               <Input value={formData.pendidikanTerakhir} onChange={(e) => setFormData({ ...formData, pendidikanTerakhir: e.target.value })} />
             </div>
           </div>
 
-          {/* SK & Status */}
+          {/* SK */}
           <div className="border-t pt-4 mt-2">
             <Label className="mb-2 block font-semibold text-gray-700">SK Pengangkatan (Opsional)</Label>
             <div className="grid grid-cols-2 gap-4">
@@ -164,8 +193,20 @@ const AddAparatModal = ({ isOpen, onClose, onSubmit }: AddAparatModalProps) => {
             </div>
           </div>
 
+          {/* ✅ INPUT FILE TANDA TANGAN */}
+          <div className="grid gap-2 mt-2 border-t pt-4">
+            <Label>Scan Tanda Tangan (Opsional)</Label>
+            <Input 
+              type="file" 
+              accept="image/png, image/jpeg, image/jpg"
+              onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+              className="cursor-pointer"
+            />
+            <p className="text-xs text-gray-500">Format: JPG, PNG. Maks 2MB.</p>
+          </div>
+
           <div className="grid gap-2 mt-2">
-            <Label>Status Aparat <span className="text-red-500">*</span></Label>
+            <Label>Status <span className="text-red-500">*</span></Label>
             <Select value={formData.status} onValueChange={(val: any) => setFormData({ ...formData, status: val })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -179,8 +220,15 @@ const AddAparatModal = ({ isOpen, onClose, onSubmit }: AddAparatModalProps) => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button type="submit" onClick={handleSubmit} className="bg-indigo-600 text-white">Simpan</Button>
+          <Button variant="outline" onClick={onClose} disabled={isUploading}>Batal</Button>
+          <Button 
+            type="submit" 
+            onClick={handleSubmit} 
+            className="bg-indigo-600 text-white"
+            disabled={isUploading}
+          >
+            {isUploading ? "Mengupload..." : "Simpan"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
