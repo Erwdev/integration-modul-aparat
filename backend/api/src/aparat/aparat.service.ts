@@ -37,15 +37,20 @@ export class AparatService {
       const existing = await this.repo.findOne({ where: { nik: dto.nik } });
       if (existing) throw new BadRequestException(`NIK ${dto.nik} sudah terdaftar`);
 
+      // LOGIKA AUTO NUMBER
       let nomorUrut = dto.nomorUrut;
       if (!nomorUrut) {
-        const last = await this.repo.find({ order: { nomorUrut: 'DESC' }, take: 1 });
+        // Cari nomor urut terakhir
+        const last = await this.repo.find({
+          order: { nomorUrut: 'DESC' }, // Pastikan Entity sudah mapping nomorUrut -> nomor_urut
+          take: 1,
+        });
         nomorUrut = last.length > 0 ? last[0].nomorUrut + 1 : 1;
       }
 
       const aparat = this.repo.create({
         ...dto, // Spread properti dasar
-        nomorUrut,
+        nomorUrut: nomorUrut,
         tanggalLahir: new Date(dto.tanggalLahir),
         // Format SK ke JSON String
         skPengangkatan: this.formatSK(dto.skPengangkatanNomor, dto.skPengangkatanTanggal),

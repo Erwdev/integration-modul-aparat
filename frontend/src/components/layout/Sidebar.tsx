@@ -5,6 +5,7 @@ import Logo from '@/components/ui/logo';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { Activity } from 'lucide-react';
 
 interface SidebarProps {
   activeMenu?: 'aparat' | 'ekspedisi' | 'surat' | 'reports';
@@ -62,6 +63,12 @@ const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
       label: 'Laporan',
       icon: ChartBarIcon,
       value: 'reports'
+    },
+    {
+      href: '/events',
+      label: 'Audit Log',
+      icon: Activity, // Pastikan import icon ini
+      value: 'events'
     }
   ];
 
