@@ -1,14 +1,25 @@
 import { useTheme } from '@/context/ThemeContext';
-import { MoonIcon, SunIcon, ChevronLeftIcon, ChevronRightIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { UserGroupIcon, TruckIcon, DocumentTextIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { 
+  MoonIcon, 
+  SunIcon, 
+  ChevronLeftIcon, 
+  ChevronRightIcon, 
+  Bars3Icon, 
+  XMarkIcon,
+  UserGroupIcon, 
+  TruckIcon, 
+  DocumentTextIcon, 
+  ChartBarIcon,
+  ArrowLeftOnRectangleIcon // ✅ Icon Logout
+} from '@heroicons/react/24/outline';
 import Logo from '@/components/ui/logo';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Activity } from 'lucide-react';
+import { useRouter } from 'next/router'; // ✅ Router untuk redirect
 
 interface SidebarProps {
-  activeMenu?: 'aparat' | 'ekspedisi' | 'surat' | 'reports';
+  activeMenu?: 'aparat' | 'ekspedisi' | 'surat' | 'reports' | 'events';
 }
 
 const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
@@ -16,6 +27,7 @@ const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const router = useRouter(); // ✅ Init Router
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -38,6 +50,16 @@ const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
       setIsCollapsed(false);
     }
   }, [isMobile]);
+
+  // ✅ Fungsi Logout
+  const handleLogout = () => {
+    // 1. Hapus data sesi
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+
+    // 2. Redirect ke halaman login
+    router.push('/auth/sign-in');
+  };
 
   const menuItems = [
     {
@@ -64,16 +86,17 @@ const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
       icon: ChartBarIcon,
       value: 'reports'
     },
+    // Tambahkan menu events/audit log jika sudah ada di sidebar sebelumnya
     {
       href: '/events',
       label: 'Audit Log',
-      icon: Activity, // Pastikan import icon ini
+      icon: ChartBarIcon, // Bisa ganti icon lain jika mau
       value: 'events'
     }
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen print:hidden">
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -96,7 +119,7 @@ const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
 
       <aside 
         className={cn(
-          "bg-white dark:bg-gray-900 shadow-md py-6 transition-all duration-300 ease-in-out relative h-screen",
+          "bg-white dark:bg-gray-900 shadow-md py-6 transition-all duration-300 ease-in-out relative h-screen flex flex-col", // ✅ Added flex flex-col
           // Mobile styles
           "fixed md:static inset-y-0 left-0 z-40 md:z-0",
           "transform md:transform-none",
@@ -121,6 +144,7 @@ const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
         </button>
       )}
 
+      {/* Header Logo & Theme Toggle (Desktop Expanded / Mobile) */}
       <div className={cn(
         "flex items-center mb-8 transition-all",
         isCollapsed && !isMobile ? "justify-center px-2" : "justify-between px-4"
@@ -146,11 +170,12 @@ const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
         )}
       </div>
 
-      <nav className={cn("space-y-2", isCollapsed && !isMobile ? "px-2" : "px-4")}>
+      {/* Menu Items */}
+      <nav className={cn("space-y-2 flex-1 overflow-y-auto", isCollapsed && !isMobile ? "px-2" : "px-4")}>
         {(!isCollapsed || isMobile) && (
-          <p className="text-gray-400 dark:text-gray-500 uppercase text-xs">Data Management</p>
+          <p className="text-gray-400 dark:text-gray-500 uppercase text-xs mb-2 font-medium">Data Management</p>
         )}
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {menuItems.map((item) => (
             <Link href={item.href} key={item.value} onClick={() => isMobile && setIsMobileMenuOpen(false)}>
               <li className={cn(
@@ -158,7 +183,7 @@ const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
                 isCollapsed && !isMobile ? "justify-center p-2" : "px-3 py-2",
                 activeMenu === item.value
                   ? "text-indigo-600 dark:text-indigo-400 font-semibold bg-indigo-50 dark:bg-indigo-900/30"
-                  : "text-gray-600 dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-400"
+                  : "text-gray-600 dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-800"
               )}>
                 <item.icon className={cn(
                   "transition-all",
@@ -171,6 +196,29 @@ const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
         </ul>
       </nav>
 
+      {/* ✅ Logout Button (Footer) */}
+      <div className={cn(
+        "p-4 border-t border-gray-200 dark:border-gray-800 mt-auto",
+        // Jika collapsed, beri margin bawah agar tidak tertutup tombol tema absolute
+        isCollapsed && !isMobile ? "mb-16 px-2" : "mb-0 px-4"
+      )}>
+        <button
+          onClick={handleLogout}
+          className={cn(
+            "flex items-center gap-3 w-full rounded-md cursor-pointer transition-colors text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20",
+             isCollapsed && !isMobile ? "justify-center p-2" : "px-3 py-2"
+          )}
+          title="Keluar Aplikasi"
+        >
+           <ArrowLeftOnRectangleIcon className={cn(
+              "transition-all",
+              isCollapsed && !isMobile ? "w-6 h-6" : "w-5 h-5"
+            )} />
+            {(!isCollapsed || isMobile) && <span className="font-medium">Keluar</span>}
+        </button>
+      </div>
+
+      {/* Collapsed Theme Toggle (Absolute Bottom) */}
       {isCollapsed && !isMobile && (
         <button
           onClick={toggleDarkMode}
