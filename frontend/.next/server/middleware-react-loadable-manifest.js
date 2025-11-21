@@ -1,1 +1,0 @@
-self.__REACT_LOADABLE_MANIFEST="{\"pages\\\\index.tsx -> gsap\":{\"id\":\"pages\\\\index.tsx -> gsap\",\"files\":[\"static/chunks/node_modules_gsap_index_js.js\"]},\"pages\\\\index.tsx -> gsap/ScrambleTextPlugin\":{\"id\":\"pages\\\\index.tsx -> gsap/ScrambleTextPlugin\",\"files\":[\"static/chunks/node_modules_gsap_ScrambleTextPlugin_js.js\"]}}"

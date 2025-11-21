@@ -49,10 +49,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
         synchronize: false,
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         logging: process.env.NODE_ENV === 'development',
-        ssl:
-          cs.get<string>('NODE_ENV') === 'production'
-            ? { rejectUnauthorized: false }
-            : false, 
+        ssl: false, // Paksa false sementara untuk debugging koneksi lokal
       }),
     }),
 
