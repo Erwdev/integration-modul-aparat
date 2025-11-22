@@ -1,116 +1,112 @@
-📄 README.md (Updated for Branch: feature/perbaikan-auth-dan-migrasi)
-Berikut adalah panduan lengkap yang sudah menyertakan cara generate token dan hash password.
+# feature/perbaikan-auth-dan-migrasi
 
-Markdown
+## 🛠️ Tech Stack
 
-# Integration Modul Aparat (Branch: feature/perbaikan-auth-dan-migrasi)
+- **Frontend:** Next.js 14 (Pages Router), Tailwind CSS, Lucide Icons, Shadcn UI (Radix).
+- **Backend:** NestJS, TypeORM.
+- **Database:** PostgreSQL 16.
+- **Infrastructure:** Docker Compose.
+- **Communication:** REST API + Event Bus (Audit Log).
 
-Panduan setup untuk branch pengembangan fitur **Auth**, **Aparat CRUD**, dan **Audit Log**.
+## ⚠️ Panduan Setup untuk Developer Baru (Teammates)
 
-> ⚠️ **PERHATIAN:** Branch ini mengubah struktur Database secara total.
-> **WAJIB RESET DATABASE** saat pertama kali setup agar tidak terjadi Error 500.
+Karena terjadi perubahan besar pada struktur tabel database dan logika autentikasi, teman tim **WAJIB** mengikuti langkah ini agar tidak error:
 
----
+### 1. Clone & Pull
 
-## 🚀 Langkah 1: Setup Environment Variable
+```
+git pull origin feature/perbaikan-auth-dan-migrasi
+```
+### 2. Setup Environment (.env)
 
-File `.env` menyimpan konfigurasi database dan kunci rahasia (Secret Keys).
+Pastikan file `.env` memiliki konfigurasi berikut (terutama `JWT_SECRET` dan `CORS_ORIGIN`).
 
-1. **Copy File Example:**
-   ```powershell
-   cp .env.example .env
-Isi Token Rahasia (Wajib): Buka file .env yang baru dibuat. Pastikan konfigurasi DB sudah benar, lalu isi bagian JWT dan API Key.
+Cara Generate Token Rahasia:
+Jalankan perintah ini di terminal untuk mendapatkan string acak:
 
-Anda bisa menghasilkan kunci acak menggunakan terminal (Node.js):
-
-PowerShell
-
-# Generate string acak untuk JWT_SECRET
+```
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-Copy output-nya dan masukkan ke JWT_SECRET di file .env. Ulangi untuk JWT_REFRESH_SECRET dan API_KEY.
+```
+_(Copy hasilnya ke `JWT_SECRET` dan `JWT_REFRESH_SECRET` di .env)_
 
-Contoh konfigurasi .env minimal yang benar:
+**Contoh `.env`:**
 
-Ini, TOML
-
+```
 PORT=3000
 DB_HOST=db
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
 DB_DATABASE=aparat_db
-
-# Wajib diisi string acak panjang
-JWT_SECRET=a7b8c9...
-JWT_REFRESH_SECRET=d4e5f6...
-API_KEY=12345...
-
-# Wajib sesuai port frontend
 CORS_ORIGIN=http://localhost:3001
-🚀 Langkah 2: Reset Database & Jalankan Docker
-Karena struktur tabel berubah, kita harus menghapus data lama dan membangun ulang container.
+JWT_SECRET=paste_hasil_generate_disini
+JWT_REFRESH_SECRET=paste_hasil_generate_lainnya_disini
+API_KEY=rahasia
+```
 
-Hapus Container & Volume Database (Wipe Data):
+### 3. 🚨 RESET DATABASE (Wajib!)
 
-PowerShell
+Langkah ini menghapus database lama yang skemanya konflik dengan kode baru.
 
+```
+# Matikan container & Hapus Volume
 docker compose down -v
-(Flag -v sangat penting untuk menghapus skema database lama yang konflik)
 
-Build & Jalankan Container:
-
-PowerShell
-
+# Build ulang container
 docker compose up -d --build
-Tunggu Backend Ready: Pantau log backend hingga muncul pesan "Application is running".
+```
 
-PowerShell
+### 4. 🔑 Restore Password Admin
 
-docker logs -f aparat-backend
-🚀 Langkah 3: Setup Akun Admin
-Setelah reset database, password admin kembali ke default. Anda perlu membuat hash password baru agar bisa login.
+Setelah reset DB, password `admin` kembali ke default dan tidak bisa digunakan login. Anda harus membuat hash baru.
 
-1. Generate Hash Password (misal: "admin123"): Jalankan perintah ini di terminal terpisah untuk mendapatkan kode hash yang valid dari sistem:
+A. Generate Hash Password Baru:
 
-PowerShell
+Jalankan perintah ini untuk membuat hash aman dari "admin123":
 
+```
 docker compose exec backend node -e "const bcrypt = require('bcrypt'); console.log(bcrypt.hashSync('admin123', 10))"
-Output: $2b$10$XyZ123abc... (Simpan kode ini!)
+```
+	
+_(Copy output string yang berawalan `$2b$10$...`)_
 
-2. Update Database: Masukkan hash tersebut ke database user.
+B. Update Database:
 
-PowerShell
+Masukkan hash tersebut ke database:
 
+```
 # Masuk ke database
 docker compose exec db psql -U postgres -d aparat_db
-SQL
+```
 
--- Ganti 'HASH_DARI_LANGKAH_1' dengan kode yang Anda dapatkan tadi
-UPDATE users SET password = 'HASH_DARI_LANGKAH_1' WHERE username = 'admin';
+```
+-- Ganti HASH_BARU dengan string yang Anda copy tadi
+UPDATE users SET password = 'HASH_BARU' WHERE username = 'admin';
 
--- Keluar
+-- selesai
 \q
-🌐 Akses Aplikasi
-Sekarang sistem sudah siap digunakan sepenuhnya.
+```
 
-Frontend: http://localhost:3001
+**Login Default:**
 
-Login:
+- **User:** `admin`
+- **Pass:** `admin123` (atau password lain sesuai yang Anda hash)
 
-Username: admin
+## 📝 Catatan Teknis & Debugging
 
-Password: admin123 (atau sesuai yang Anda generate)
+### 1. Isu "Internal Server Error" (500) di Audit Log
 
-Fitur yang Bisa Dites:
-Manajemen Aparat: Tambah, Edit (ada validasi NIK), Hapus, dan Upload Tanda Tangan.
+- **Penyebab:** Database lama menyimpan status `pending` (kecil), kode baru minta `PENDING` (besar).
+- **Solusi:** Sudah diperbaiki di file migrasi `003`. Reset DB (`docker compose down -v`) menyelesaikan ini.
 
-Audit Log: Menu /events akan merekam semua aktivitas Anda.
+### 2. Isu "Bad Request" (400) di Edit Aparat
 
-Logout: Tombol keluar ada di sidebar bawah.
+- **Penyebab:** Frontend mengirim field sampah (`created_at`, `version`) yang ditolak Backend.
+- **Solusi:** Sudah diperbaiki di `EditAparatModal.tsx` dengan teknik _whitelisting payload_.
 
-🔧 Troubleshooting
-Error "Internal Server Error" di Audit Log: Artinya Enum database masih versi lama (huruf kecil). Ulangi Langkah 2 (docker compose down -v) dengan benar.
+### 3. Tampilan Form Transparan / Rusak
 
-Gagal Login (401 Unauthorized): Hash password salah. Ulangi Langkah 3 untuk generate hash baru dan update ke DB.
+- **Penyebab:** Konfigurasi Tailwind tidak membaca folder `src`.
+- **Solusi:** Sudah diperbaiki di `tailwind.config.js`. Jika terjadi lagi, restart container frontend.
 
-Tampilan Rusak / Input Hilang: Browser menyimpan cache file JS lama. Lakukan Hard Refresh (Ctrl + F5).
+## 🚀 Sekian Terima Kasih
