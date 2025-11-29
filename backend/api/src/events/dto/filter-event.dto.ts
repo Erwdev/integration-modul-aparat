@@ -1,41 +1,40 @@
-import { IsEnum, IsOptional, IsDateString, IsInt, Min } from 'class-validator';
+import { IsEnum, IsOptional, IsDateString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EventTopic, EventStatus, SourceModule } from '../enums';
 
+/**
+ * DTO untuk filter events
+ */
 export class FilterEventsDto {
-  @IsOptional()
   @IsEnum(EventTopic)
+  @IsOptional()
   topic?: EventTopic;
 
-  @IsOptional()
   @IsEnum(EventStatus)
+  @IsOptional()
   status?: EventStatus;
 
-  @IsOptional()
   @IsEnum(SourceModule)
+  @IsOptional()
   source_module?: SourceModule;
 
-  @IsOptional()
   @IsDateString()
-  start_date?: string; // Filter mulai tanggal
-
   @IsOptional()
+  start_date?: string;
+
   @IsDateString()
-  end_date?: string;   // Filter sampai tanggal
-
   @IsOptional()
-  @IsDateString()
-  since?: string;      // Filter khusus untuk polling (sejak kapan)
+  end_date?: string;
 
-  @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  @Min(1)
+  @IsOptional()
   page?: number = 1;
 
-  @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  @Min(1)
+  @IsOptional()
   limit?: number = 20;
+
+  @IsOptional()
+  @IsDateString()
+  since?: string; 
 }

@@ -1,14 +1,25 @@
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { useState, useEffect } from "react";
-import type { Aparat } from '@/features/aparat/types';
+
+import type { Aparat } from '@/types/aparat';
+import type { AparatFormData } from '../types';
 
 interface EditAparatModalProps {
   isOpen: boolean;
@@ -18,57 +29,18 @@ interface EditAparatModalProps {
 }
 
 const EditAparatModal = ({ isOpen, onClose, onSubmit, aparat }: EditAparatModalProps) => {
-  const [formData, setFormData] = useState<any>(null);
+  const [formData, setFormData] = useState<Aparat | null>(null);
 
   useEffect(() => {
     if (aparat) {
-      const normalizeSK = (data: any) => {
-        if (!data) return { nomor: '', tanggal: '' };
-        if (typeof data === 'string') return { nomor: data, tanggal: '' };
-        return data;
-      };
-
-      setFormData({
-        ...aparat,
-        tanggalLahir: aparat.tanggalLahir ? new Date(aparat.tanggalLahir).toISOString().split('T')[0] : '',
-        skPengangkatan: normalizeSK(aparat.skPengangkatan),
-        skPemberhentian: normalizeSK(aparat.skPemberhentian),
-        status: aparat.status ? aparat.status.toUpperCase() : 'AKTIF',
-      });
+      setFormData(aparat);
     }
   }, [aparat]);
 
   const handleSubmit = () => {
     if (!formData) return;
-    
-    if (!formData.nama || !formData.jabatan || !formData.agama || !formData.tempatLahir || !formData.tanggalLahir) {
-      alert("Mohon lengkapi field bertanda bintang (*)!");
-      return;
-    }
-
-    const cleanPayload: any = {
-      id: aparat?.id,
-      nama: formData.nama,
-      nik: formData.nik,
-      jenisKelamin: formData.jenisKelamin,
-      tempatLahir: formData.tempatLahir,
-      tanggalLahir: formData.tanggalLahir,
-      jabatan: formData.jabatan,
-      agama: formData.agama,
-      
-      nip: formData.nip || '',
-      pangkatGolongan: formData.pangkatGolongan || '',
-      pendidikanTerakhir: formData.pendidikanTerakhir || '',
-      status: formData.status,
-      keterangan: formData.keterangan || '',
-
-      skPengangkatanNomor: formData.skPengangkatan?.nomor || '',
-      skPengangkatanTanggal: formData.skPengangkatan?.tanggal || '',
-      skPemberhentianNomor: formData.skPemberhentian?.nomor || '',
-      skPemberhentianTanggal: formData.skPemberhentian?.tanggal || '',
-    };
-    
-    onSubmit(cleanPayload);
+    onSubmit(formData);
+    setFormData(null);
     onClose();
   };
 
@@ -76,181 +48,209 @@ const EditAparatModal = ({ isOpen, onClose, onSubmit, aparat }: EditAparatModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Edit Data Aparat</DialogTitle>
-          <DialogDescription>Ubah data aparat di bawah ini.</DialogDescription>
+          <DialogDescription>
+            Ubah data aparat di bawah ini.
+          </DialogDescription>
         </DialogHeader>
-        
-        <div className="grid gap-4 py-4">
-          {/* Nama & NIK */}
+        <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
           <div className="grid gap-2">
-            <Label>Nama Lengkap <span className="text-red-500">*</span></Label>
+            <Label htmlFor="nama">Nama Lengkap</Label>
             <Input
-              value={formData.nama || ''}
+              id="nama"
+              value={formData.nama}
               onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label>NIK <span className="text-gray-400 text-xs">(Tidak dapat diubah)</span></Label>
-            <Input
-              value={formData.nik || ''}
-              readOnly
-              className="bg-gray-100 cursor-not-allowed text-gray-500"
+              placeholder="Masukkan nama lengkap"
             />
           </div>
           
           <div className="grid gap-2">
-            <Label>NIP/NIAPD <span className="text-gray-400 text-xs">(Opsional)</span></Label>
+            <Label htmlFor="nip">NIP/NIAPD</Label>
             <Input
-              value={formData.nip || ''}
+              id="nip"
+              value={formData.nip}
               onChange={(e) => setFormData({ ...formData, nip: e.target.value })}
+              placeholder="Masukkan NIP atau NIAPD"
             />
           </div>
 
-          {/* Kelamin & Agama */}
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Jenis Kelamin <span className="text-red-500">*</span></Label>
+              <Label htmlFor="jenisKelamin">Jenis Kelamin</Label>
               <Select
                 value={formData.jenisKelamin}
-                onValueChange={(val) => setFormData({ ...formData, jenisKelamin: val })}
+                onValueChange={(value) => setFormData({ ...formData, jenisKelamin: value as 'L' | 'P' })}
               >
-                <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih jenis kelamin" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="L">Laki-laki</SelectItem>
                   <SelectItem value="P">Perempuan</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
             <div className="grid gap-2">
-              <Label>Agama <span className="text-red-500">*</span></Label>
-              <Select
+              <Label htmlFor="agama">Agama</Label>
+              <Input
+                id="agama"
                 value={formData.agama}
-                onValueChange={(val) => setFormData({ ...formData, agama: val })}
-              >
-                <SelectTrigger><SelectValue placeholder="Pilih Agama" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Islam">Islam</SelectItem>
-                  <SelectItem value="Kristen">Kristen</SelectItem>
-                  <SelectItem value="Katolik">Katolik</SelectItem>
-                  <SelectItem value="Hindu">Hindu</SelectItem>
-                  <SelectItem value="Buddha">Buddha</SelectItem>
-                  <SelectItem value="Khonghucu">Khonghucu</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={(e) => setFormData({ ...formData, agama: e.target.value })}
+                placeholder="Masukkan agama"
+              />
             </div>
           </div>
 
-          {/* TTL */}
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Tempat Lahir <span className="text-red-500">*</span></Label>
+              <Label htmlFor="tempatLahir">Tempat Lahir</Label>
               <Input
-                value={formData.tempatLahir || ''}
+                id="tempatLahir"
+                value={formData.tempatLahir}
                 onChange={(e) => setFormData({ ...formData, tempatLahir: e.target.value })}
+                placeholder="Masukkan tempat lahir"
               />
             </div>
+
             <div className="grid gap-2">
-              <Label>Tanggal Lahir <span className="text-red-500">*</span></Label>
+              <Label htmlFor="tanggalLahir">Tanggal Lahir</Label>
               <Input
+                id="tanggalLahir"
                 type="date"
-                value={formData.tanggalLahir || ''}
+                value={formData.tanggalLahir}
                 onChange={(e) => setFormData({ ...formData, tanggalLahir: e.target.value })}
               />
             </div>
           </div>
 
-          {/* Jabatan */}
           <div className="grid gap-2">
-            <Label>Jabatan <span className="text-red-500">*</span></Label>
-            <Select
+            <Label htmlFor="jabatan">Jabatan</Label>
+            <Input
+              id="jabatan"
               value={formData.jabatan}
-              onValueChange={(val) => setFormData({ ...formData, jabatan: val })}
-            >
-              <SelectTrigger><SelectValue placeholder="Pilih Jabatan" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Lurah">Lurah / Kepala Desa</SelectItem>
-                <SelectItem value="Sekretaris Desa">Sekretaris Desa</SelectItem>
-                <SelectItem value="Kepala Urusan Tata Usaha dan Umum">Kaur TU & Umum</SelectItem>
-                <SelectItem value="Kepala Urusan Keuangan">Kaur Keuangan</SelectItem>
-                <SelectItem value="Kepala Urusan Perencanaan">Kaur Perencanaan</SelectItem>
-                <SelectItem value="Kepala Seksi Pemerintahan">Kasi Pemerintahan</SelectItem>
-                <SelectItem value="Kepala Seksi Kesejahteraan">Kasi Kesejahteraan</SelectItem>
-                <SelectItem value="Kepala Seksi Pelayanan">Kasi Pelayanan</SelectItem>
-                <SelectItem value="Dukuh">Dukuh / Kepala Dusun</SelectItem>
-                <SelectItem value="Staf">Staf</SelectItem>
-              </SelectContent>
-            </Select>
+              onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
+              placeholder="Masukkan jabatan"
+            />
           </div>
 
-          {/* Opsional */}
+          <div className="grid gap-2">
+            <Label htmlFor="pangkatGolongan">Pangkat/Golongan (opsional)</Label>
+            <Input
+              id="pangkatGolongan"
+              value={formData.pangkatGolongan || ''}
+              onChange={(e) => setFormData({ ...formData, pangkatGolongan: e.target.value })}
+              placeholder="Masukkan pangkat/golongan"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="pendidikanTerakhir">Pendidikan Terakhir</Label>
+            <Input
+              id="pendidikanTerakhir"
+              value={formData.pendidikanTerakhir}
+              onChange={(e) => setFormData({ ...formData, pendidikanTerakhir: e.target.value })}
+              placeholder="Masukkan pendidikan terakhir"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Pangkat/Golongan <span className="text-gray-400 text-xs">(Opsional)</span></Label>
+              <Label htmlFor="skPengangkatanNomor">Nomor SK Pengangkatan</Label>
               <Input
-                value={formData.pangkatGolongan || ''}
-                onChange={(e) => setFormData({ ...formData, pangkatGolongan: e.target.value })}
+                id="skPengangkatanNomor"
+                value={formData.skPengangkatan.nomor}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  skPengangkatan: { ...formData.skPengangkatan, nomor: e.target.value }
+                })}
+                placeholder="Masukkan nomor SK"
               />
             </div>
+
             <div className="grid gap-2">
-              <Label>Pendidikan Terakhir <span className="text-gray-400 text-xs">(Opsional)</span></Label>
+              <Label htmlFor="skPengangkatanTanggal">Tanggal SK Pengangkatan</Label>
               <Input
-                value={formData.pendidikanTerakhir || ''}
-                onChange={(e) => setFormData({ ...formData, pendidikanTerakhir: e.target.value })}
+                id="skPengangkatanTanggal"
+                type="date"
+                value={formData.skPengangkatan.tanggal}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  skPengangkatan: { ...formData.skPengangkatan, tanggal: e.target.value }
+                })}
               />
             </div>
           </div>
 
-          {/* SK */}
-          <div className="border-t pt-4 mt-2">
-            <Label className="mb-2 block font-semibold text-gray-700">SK Pengangkatan (Opsional)</Label>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label className="text-xs">Nomor SK</Label>
-                <Input
-                  value={formData.skPengangkatan?.nomor || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    skPengangkatan: { ...formData.skPengangkatan, nomor: e.target.value }
-                  })}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-xs">Tanggal SK</Label>
-                <Input
-                  type="date"
-                  value={formData.skPengangkatan?.tanggal || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    skPengangkatan: { ...formData.skPengangkatan, tanggal: e.target.value }
-                  })}
-                />
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="skPemberhentianNomor">Nomor SK Pemberhentian (opsional)</Label>
+              <Input
+                id="skPemberhentianNomor"
+                value={formData.skPemberhentian?.nomor || ''}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  skPemberhentian: {
+                    ...formData.skPemberhentian,
+                    nomor: e.target.value,
+                    tanggal: formData.skPemberhentian?.tanggal || new Date().toISOString().split('T')[0]
+                  }
+                })}
+                placeholder="Masukkan nomor SK"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="skPemberhentianTanggal">Tanggal SK Pemberhentian (opsional)</Label>
+              <Input
+                id="skPemberhentianTanggal"
+                type="date"
+                value={formData.skPemberhentian?.tanggal || ''}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  skPemberhentian: {
+                    ...formData.skPemberhentian,
+                    tanggal: e.target.value,
+                    nomor: formData.skPemberhentian?.nomor || ''
+                  }
+                })}
+              />
             </div>
           </div>
 
-          <div className="grid gap-2 mt-2">
-            <Label>Status <span className="text-red-500">*</span></Label>
+          <div className="grid gap-2">
+            <Label htmlFor="status">Status</Label>
             <Select
               value={formData.status}
-              onValueChange={(val) => setFormData({ ...formData, status: val })}
+              onValueChange={(value) => setFormData({ ...formData, status: value as 'Aktif' | 'Nonaktif' })}
             >
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih status" />
+              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="AKTIF">Aktif</SelectItem>
-                <SelectItem value="NONAKTIF">Nonaktif</SelectItem>
-                <SelectItem value="CUTI">Cuti</SelectItem>
-                <SelectItem value="PENSIUN">Pensiun</SelectItem>
+                <SelectItem value="Aktif">Aktif</SelectItem>
+                <SelectItem value="Nonaktif">Nonaktif</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
-
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button type="submit" onClick={handleSubmit} className="bg-indigo-600 text-white">Simpan</Button>
+          <Button 
+            variant="outline" 
+            onClick={onClose}
+            className="border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            Batal
+          </Button>
+          <Button 
+            type="submit" 
+            onClick={handleSubmit}
+            className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+          >
+            Simpan
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
