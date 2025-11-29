@@ -27,7 +27,7 @@ describe('AparatService', () => {
     nama: 'John Doe',
     jabatan: 'Kepala Desa',
     pangkat_golongan: 'Pembina (IV/a)',
-    nomor_urut: 1,
+
     status: StatusAparat.AKTIF,
     created_at: new Date('2025-01-01'),
     updated_at: new Date('2025-01-01'),
@@ -130,7 +130,6 @@ describe('AparatService', () => {
       expect(result).toEqual(mockAparat);
       expect(mockRepository.create).toHaveBeenCalledWith({
         ...dto,
-        nomor_urut: 1,
       });
       expect(mockRepository.save).toHaveBeenCalled();
       
@@ -263,15 +262,14 @@ describe('AparatService', () => {
       qb.getRawOne.mockResolvedValue({ max: 5 }); // ✅ Max is 5
       mockRepository.createQueryBuilder.mockReturnValue(qb);
 
-      const created = { ...mockAparat, nomor_urut: 6 };
+      const created = { ...mockAparat };
       mockRepository.create.mockReturnValue(created);
       mockRepository.save.mockResolvedValue(created);
 
       await service.create(dto as any);
 
       expect(mockRepository.create).toHaveBeenCalledWith({
-        ...dto,
-        nomor_urut: 6, // ✅ Should be 6
+        ...dto, // ✅ Should be 6
       });
     });
   });
@@ -746,7 +744,6 @@ describe('AparatService', () => {
           nama: mockAparat.nama,
           jabatan: mockAparat.jabatan,
           pangkat_golongan: mockAparat.pangkat_golongan,
-          nomor_urut: mockAparat.nomor_urut,
           createdAt: mockAparat.created_at,
         },
         source_module: SourceModule.APARAT,

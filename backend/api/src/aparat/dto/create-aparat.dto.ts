@@ -1,35 +1,40 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsDateString, Length } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsDateString, Length, IsInt } from 'class-validator';
 import { StatusAparat } from '../enums/status-aparat.enum';
 import { Jabatan } from '../enums/jabatan.enum';
 
 export class CreateAparatDto {
+  @IsOptional() @IsInt() nomorUrut?: number;
+
   @IsNotEmpty() @IsString() nama: string;
 
   @IsNotEmpty() @Length(16,16) nik: string;
 
   @IsOptional() @IsString() nip?: string;
 
-  @IsNotEmpty() jenis_kelamin: 'L'|'P';
+  @IsNotEmpty() jenisKelamin: 'L'|'P';
 
-  @IsNotEmpty() @IsString() tempat_lahir: string;
+  @IsNotEmpty() @IsString() tempatLahir: string;
 
-  @IsNotEmpty() @IsDateString() tanggal_lahir: string;
+  @IsNotEmpty() @IsDateString() tanggalLahir: string;
 
   @IsOptional() @IsString() agama?: string;
 
-  @IsOptional() @IsString() pangkat_golongan?: string;
+  @IsOptional() @IsString() pangkatGolongan?: string;
 
   @IsNotEmpty() @IsEnum(Jabatan) jabatan: Jabatan | string;
 
-  @IsOptional() pendidikan_terakhir?: string;
+  @IsOptional() @IsString() pendidikanTerakhir?: string;
 
-  @IsOptional() nomor_tanggal_keputusan_pengangkatan?: string;
+  // ✅ Field SK yang VALID (String)
+  @IsOptional() @IsString() skPengangkatanNomor?: string;
+  @IsOptional() @IsString() skPengangkatanTanggal?: string;
 
-  @IsOptional() nomor_tanggal_keputusan_pemberhentian?: string;
+  @IsOptional() @IsString() skPemberhentianNomor?: string;
+  @IsOptional() @IsString() skPemberhentianTanggal?: string;
 
-  @IsOptional() keterangan?: string;
+  @IsOptional() @IsString() keterangan?: string;
 
-  @IsOptional() tanda_tangan_url?: string;
+  @IsOptional() @IsString() tandaTanganUrl?: string;
 
   @IsOptional() @IsEnum(StatusAparat) status?: StatusAparat;
 }
