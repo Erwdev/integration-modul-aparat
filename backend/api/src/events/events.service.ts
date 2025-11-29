@@ -30,6 +30,7 @@ export class EventsService {
    * Publish Event
    */
   async publishEvent(createEventDto: CreateEventDto): Promise<Event> {
+    // Check duplicate idempotency key
     const existingEvent = await this.eventRepository.findOne({
       where: { idempotency_key: createEventDto.idempotency_key },
     });
@@ -51,70 +52,62 @@ export class EventsService {
     });
 
     await this.eventRepository.save(event);
+
     this.logger.log(`Event ${event.id} published successfully`);
+
     return event;
   }
 
   /**
-   * Get events for Audit Log (History)
+   * Get events for consumption (with retry logic)
    */
   async findAll(filterDto: FilterEventsDto): Promise<{
     data: Event[];
     total: number;
     meta: any;
   }> {
-    const query = this.eventRepository.createQueryBuilder('event');
+    const query = this.eventRepository
+      .createQueryBuilder('event')
+      .where('event.status = :status', { status: EventStatus.PENDING })
+      .andWhere('event.is_dlq = :is_dlq', { is_dlq: false });
 
-    // 1. Filter DLQ
-    query.andWhere('event.is_dlq = :is_dlq', { is_dlq: false });
-
-    // 2. Filter Status
-    if (filterDto.status) {
-      query.andWhere('event.status = :status', { status: filterDto.status });
-    }
-
-    // 3. Filter Topic
+    // ✅ Filter by topic
     if (filterDto.topic) {
       query.andWhere('event.topic = :topic', { topic: filterDto.topic });
     }
 
-    // 4. Filter Source Module
+    // ✅ Filter by source module
     if (filterDto.source_module) {
       query.andWhere('event.source_module = :source_module', {
         source_module: filterDto.source_module,
       });
     }
 
-    // 5. Filter Date Range (Start)
-    if (filterDto.start_date) {
-      query.andWhere('event.created_at >= :startDate', {
-        startDate: new Date(filterDto.start_date),
-      });
-    }
+    // ✅ Filter events ready for retry (next_retry_at <= now OR null)
+    query.andWhere(
+      '(event.next_retry_at IS NULL OR event.next_retry_at <= :now)',
+      { now: new Date() },
+    );
 
-    // 6. Filter Date Range (End)
-    if (filterDto.end_date) {
-      const endDate = new Date(filterDto.end_date);
-      endDate.setHours(23, 59, 59, 999);
-      query.andWhere('event.created_at <= :endDate', { endDate });
-    }
-
-    // 7. Filter Since
+    // ✅ Filter by timestamp (only new events since last check)
     if (filterDto.since) {
       query.andWhere('event.created_at > :since', {
         since: new Date(filterDto.since),
       });
     }
 
-    // Pagination & Sorting
+    // Pagination
     const page = filterDto.page || 1;
-    const limit = filterDto.limit || 20;
+    const limit = filterDto.limit || 50;
     const offset = (page - 1) * limit;
 
-    query.orderBy('event.created_at', 'DESC');
-    query.skip(offset).take(limit);
+    query.skip(offset).take(limit).orderBy('event.created_at', 'ASC');
 
     const [events, total] = await query.getManyAndCount();
+
+    this.logger.log(
+      `Found ${events.length} events ready for processing (total pending: ${total})`,
+    );
 
     return {
       data: events,
@@ -133,6 +126,7 @@ export class EventsService {
   async acknowledgeEvent(
     acknowledgeDto: AcknowledgeEventDto,
   ): Promise<EventAcknowledgment> {
+    // Check event exists
     const event = await this.eventRepository.findOne({
       where: { id: acknowledgeDto.event_id },
     });
@@ -143,6 +137,7 @@ export class EventsService {
       );
     }
 
+    // Check duplicate acknowledgment
     const existingAck = await this.acknowledgmentRepository.findOne({
       where: {
         event_id: acknowledgeDto.event_id,
@@ -156,6 +151,7 @@ export class EventsService {
       );
     }
 
+    // Validate error_message if failed
     if (
       acknowledgeDto.processing_status === ProcessingStatus.FAILURE &&
       !acknowledgeDto.error_message
@@ -165,9 +161,11 @@ export class EventsService {
       );
     }
 
+    // Create acknowledgment
     const acknowledgment = this.acknowledgmentRepository.create(acknowledgeDto);
     const savedAck = await this.acknowledgmentRepository.save(acknowledgment);
 
+    // Update event status
     if (acknowledgeDto.processing_status === ProcessingStatus.SUCCESS) {
       event.status = EventStatus.PROCESSED;
     } else {
@@ -175,9 +173,13 @@ export class EventsService {
     }
 
     await this.eventRepository.save(event);
+
     return savedAck;
   }
 
+  /**
+   * Find One Event by ID
+   */
   async findOne(id: string): Promise<Event> {
     const event = await this.eventRepository.findOne({
       where: { id },
@@ -187,9 +189,13 @@ export class EventsService {
     if (!event) {
       throw new NotFoundException(`Event dengan ID "${id}" tidak ditemukan`);
     }
+
     return event;
   }
 
+  /**
+   * Get Pending Events
+   */
   async getPendingEvents(): Promise<Event[]> {
     return await this.eventRepository.find({
       where: { status: EventStatus.PENDING },
@@ -197,6 +203,9 @@ export class EventsService {
     });
   }
 
+  /**
+   * Get Event Statistics
+   */
   async getStatistics() {
     const total = await this.eventRepository.count();
     const pending = await this.eventRepository.count({

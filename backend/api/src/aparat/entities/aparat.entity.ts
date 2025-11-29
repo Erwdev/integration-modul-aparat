@@ -4,19 +4,20 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
+  BeforeUpdate,
+  Generated,
 } from 'typeorm';
 import { StatusAparat } from '../enums/status-aparat.enum';
 import { Jabatan } from '../enums/jabatan.enum';
 
 @Entity('aparat_desa')
 export class Aparat {
-  // Mapping ID
-  @PrimaryGeneratedColumn('uuid', { name: 'id_aparat' })
-  id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id_aparat: string;
 
-  // Mapping CamelCase -> Snake_Case Database
-  @Column({ type: 'int', unique: true, name: 'nomor_urut' })
-  nomorUrut: number;
+  // @Column({ type: 'int', unique: true })
+  // nomor_urut: number;
 
   @Column({ type: 'varchar', length: 255 })
   nama: string;
@@ -27,39 +28,38 @@ export class Aparat {
   @Column({ type: 'varchar', length: 16, unique: true })
   nik: string;
 
-  @Column({ type: 'varchar', length: 1, name: 'jenis_kelamin' })
-  jenisKelamin: 'L' | 'P';
+  @Column({ type: 'varchar', length: 1 })
+  jenis_kelamin: 'L' | 'P';
 
-  @Column({ type: 'varchar', length: 100, name: 'tempat_lahir' })
-  tempatLahir: string;
+  @Column({ type: 'varchar', length: 100 })
+  tempat_lahir: string;
 
-  @Column({ type: 'date', name: 'tanggal_lahir' })
-  tanggalLahir: Date;
+  @Column({ type: 'date' })
+  tanggal_lahir: Date;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   agama?: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true, name: 'pangkat_golongan' })
-  pangkatGolongan?: string;
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  pangkat_golongan?: string;
 
   @Column({ type: 'varchar', length: 100 })
   jabatan: Jabatan | string;
 
-  @Column({ type: 'varchar', length: 50, nullable: true, name: 'pendidikan_terakhir' })
-  pendidikanTerakhir?: string;
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  pendidikan_terakhir?: string;
 
-  // Simpan nomor SK sebagai string
-  @Column({ type: 'varchar', length: 255, nullable: true, name: 'nomor_tanggal_keputusan_pengangkatan' })
-  skPengangkatan?: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  nomor_tanggal_keputusan_pengangkatan?: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, name: 'nomor_tanggal_keputusan_pemberhentian' })
-  skPemberhentian?: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  nomor_tanggal_keputusan_pemberhentian?: string;
 
   @Column({ type: 'text', nullable: true })
   keterangan?: string;
 
-  @Column({ type: 'varchar', length: 500, nullable: true, name: 'tanda_tangan_url' })
-  tandaTanganUrl?: string;
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  tanda_tangan_url?: string;
 
   @Column({
     type: 'enum',
@@ -71,9 +71,9 @@ export class Aparat {
   @Column({ type: 'int', default: 1 })
   version: number;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  @CreateDateColumn()
+  created_at: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  @UpdateDateColumn()
+  updated_at: Date;
 }

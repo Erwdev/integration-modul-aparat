@@ -1,8 +1,8 @@
-// ✅ PERBAIKAN: Ubah value menjadi HURUF BESAR agar sesuai dengan Database
+//untuk lifecycle dari event yang masuk 
 export enum EventStatus {
-    PENDING = 'PENDING',
-    PROCESSED = 'PROCESSED',
-    FAILED = 'FAILED',
+    PENDING = 'pending',
+    PROCESSED = 'processed',
+    FAILED = 'failed',
 }
 
 export enum EventTopic {
@@ -54,6 +54,7 @@ export enum SourceModule {
 
 /**
  * Processing status untuk acknowledgment
+ * (untuk backward compatibility dengan ProcessingStatus)
  */
 export enum ProcessingStatus {
   SUCCESS = 'SUCCESS',
