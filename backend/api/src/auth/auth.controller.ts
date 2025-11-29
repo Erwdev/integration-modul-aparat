@@ -28,7 +28,7 @@ import { Role } from 'src/common/enums/roles.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 @ApiTags('auth')
 @ApiBearerAuth('JWT-auth')
-@Controller('auth')
+@Controller('api/v1/auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 

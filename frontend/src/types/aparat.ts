@@ -1,8 +1,9 @@
 export interface Aparat {
   id: string;
-  nomorUrut: number;
+  nomorUrut?: number; // Ubah jadi optional (?) agar cocok dengan tipe lain
   nama: string;
   nip: string;
+  nik?: string;
   jenisKelamin: 'L' | 'P';
   tempatLahir: string;
   tanggalLahir: string;
@@ -10,14 +11,9 @@ export interface Aparat {
   pangkatGolongan?: string;
   jabatan: string;
   pendidikanTerakhir: string;
-  skPengangkatan: {
-    nomor: string;
-    tanggal: string;
-  };
-  skPemberhentian?: {
-    nomor: string;
-    tanggal: string;
-  };
-  status: 'Aktif' | 'Nonaktif';
+  skPengangkatan?: string | { nomor: string; tanggal: string };
+  skPemberhentian?: string | { nomor: string; tanggal: string };
+  status?: string;
   keterangan?: string;
+  tandaTanganUrl?: string;
 }

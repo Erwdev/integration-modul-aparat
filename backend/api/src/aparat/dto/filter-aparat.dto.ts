@@ -1,7 +1,8 @@
 import { IsOptional, IsString } from 'class-validator';
 
 export class FilterAparatDto {
-  @IsOptional() @IsString() jabatan?: string; // comma-separated list
+  @IsOptional() @IsString() search?: string; // ✅ Tambahkan ini
+  @IsOptional() @IsString() jabatan?: string;
   @IsOptional() @IsString() status?: string;
   @IsOptional() @IsString() nama?: string;
 
@@ -10,6 +11,6 @@ export class FilterAparatDto {
   @IsOptional() limit?: number;
 
   // sorting
-  @IsOptional() sortBy?: string; // e.g. nama or updated_at
-  @IsOptional() order?: 'ASC'|'DESC';
+  @IsOptional() sortBy?: string;
+  @IsOptional() sortOrder?: 'ASC'|'DESC'; // ✅ Tambahkan ini
 }

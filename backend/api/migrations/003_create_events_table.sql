@@ -1,6 +1,6 @@
 -- ============================================
 -- Migration: 003_create_events_table.sql
--- Description: Create Events table
+-- Description: Create Events table (FIXED ENUMS)
 -- Sprint: 2 
 -- Author: Kelompok 9 - ELL Besi Sinaga
 -- ============================================
@@ -32,14 +32,16 @@ EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
 
+-- ✅ PERBAIKAN: Gunakan HURUF BESAR agar cocok dengan Backend
 DO $$ BEGIN
-    CREATE TYPE STATUS_ENUM AS ENUM('pending', 'consumed', 'failed');
+    CREATE TYPE STATUS_ENUM AS ENUM('PENDING', 'PROCESSED', 'FAILED');
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
 
+-- ✅ PERBAIKAN: Gunakan HURUF BESAR
 DO $$ BEGIN
-    CREATE TYPE PROCESSING_ENUM AS ENUM('failed', 'success');
+    CREATE TYPE PROCESSING_ENUM AS ENUM('FAILED', 'SUCCESS');
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
@@ -56,7 +58,7 @@ CREATE TABLE events (
     payload JSONB,
     source_module VARCHAR(255) NOT NULL,
     idempotency_key VARCHAR(255) UNIQUE NOT NULL,
-    status STATUS_ENUM NOT NULL DEFAULT 'pending',
+    status STATUS_ENUM NOT NULL DEFAULT 'PENDING', -- ✅ Default PENDING
     retry_count INTEGER NOT NULL DEFAULT 0,
     max_retries INTEGER NOT NULL DEFAULT 3,
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
