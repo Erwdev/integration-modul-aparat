@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/router"
 import Link from "next/link"
@@ -17,14 +19,14 @@ import { useTheme } from "@/context/ThemeContext"
 import { Moon, Sun, User, Mail, Lock, ArrowRight } from "lucide-react"
 import Logo from "@/components/ui/logo"
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
 export default function SignUpPage() {
   const { isDarkMode, toggleDarkMode } = useTheme()
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
   // Ref untuk animasi
   const cardRef = useRef<HTMLDivElement>(null)
 
