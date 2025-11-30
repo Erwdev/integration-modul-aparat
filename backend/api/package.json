@@ -10,7 +10,7 @@
     "seed": "ts-node -r tsconfig-paths/register src/database/seed.ts seed",
     "seed:rollback": "ts-node -r tsconfig-paths/register src/database/seed.ts rollback",
     "format": "prettier --write \"src/**/*.ts\"",
-    "start": "nest start",
+    "start": "node dist/main",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
