@@ -1,0 +1,12 @@
+.git
+node_modules
+backend/node_modules
+frontend/node_modules
+frontend/.next
+frontend/dist
+frontend/.env*
+frontend/.DS_Store
+frontend/npm-debug.log
+frontend/.static
+frontend/Dockerfile
+frontend/DockerFile
