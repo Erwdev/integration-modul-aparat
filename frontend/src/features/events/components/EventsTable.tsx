@@ -2,12 +2,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import type { EventLog } from "../types";
+import { useState } from "react";
 
 interface EventsTableProps {
   data: EventLog[];
 }
 
 const EventsTable = ({ data }: EventsTableProps) => {
+  const [expandedPayload, setExpandedPayload] = useState<string | null>(null);
+
   return (
     <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-x-auto">
       <Table>
@@ -47,9 +50,23 @@ const EventsTable = ({ data }: EventsTableProps) => {
                     {event.status}
                   </span>
                 </TableCell>
-                <TableCell className="max-w-xs truncate text-gray-500 text-xs font-mono">
-                  {JSON.stringify(event.payload)}
+                <TableCell className="max-w-xs text-gray-500 text-xs font-mono">
+                  <button
+                    onClick={() => setExpandedPayload(expandedPayload === event.id ? null : event.id)}
+                    className="text-blue-600 hover:text-blue-800 underline break-all text-left"
+                  >
+                    {JSON.stringify(event.payload).substring(0, 50)}...
+                  </button>
                 </TableCell>
+                {expandedPayload === event.id && (
+                  <TableRow className="bg-gray-100 dark:bg-gray-700">
+                    <TableCell colSpan={6} className="py-4">
+                      <div className="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm overflow-auto max-h-96">
+                        <pre>{JSON.stringify(event.payload, null, 2)}</pre>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
                 <TableCell className="text-center">
                   {event.retry_count} / {event.max_retries}
                 </TableCell>
