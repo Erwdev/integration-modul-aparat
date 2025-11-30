@@ -1,13 +1,18 @@
 # Build stage
 FROM node:22-alpine AS builder
 
-WORKDIR /app
+WORKDIR /app/backend/api
 
-# Copy all source files
-COPY . .
+# Copy package files
+COPY backend/api/package*.json ./
 
-# Install all dependencies (including devDeps for build)
+# Install dependencies
 RUN npm install --legacy-peer-deps
+
+# Copy source code
+COPY backend/api/src ./src
+COPY backend/api/tsconfig*.json ./
+COPY backend/api/nest-cli.json ./
 
 # Build the application
 RUN npm run build
@@ -17,14 +22,14 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy package.json files
-COPY package.json ./
-COPY backend/api/package.json ./backend/api/
+# Copy package.json for runtime
+COPY backend/api/package*.json ./
 
-# Copy built output from builder
-COPY --from=builder /app/backend/api/dist ./backend/api/dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/backend/api/node_modules ./backend/api/node_modules
+# Install production dependencies only
+RUN npm install --omit=dev --legacy-peer-deps
+
+# Copy built application from builder
+COPY --from=builder /app/backend/api/dist ./dist
 
 # Expose port
 EXPOSE 3000
@@ -33,4 +38,4 @@ EXPOSE 3000
 ENV NODE_ENV=production
 
 # Start application
-CMD ["node", "backend/api/dist/main.js"]
+CMD ["node", "dist/main.js"]
