@@ -29,31 +29,32 @@ export class EventsService {
   /**
    * Publish Event
    */
-  async publishEvent(createEventDto: CreateEventDto): Promise<Event> {
-    const existingEvent = await this.eventRepository.findOne({
-      where: { idempotency_key: createEventDto.idempotency_key },
-    });
+  // events.service.ts
+async publishEvent(createEventDto: CreateEventDto): Promise<Event> {
+  const existingEvent = await this.eventRepository.findOne({
+    where: { idempotency_key: createEventDto.idempotency_key },
+  });
 
-    if (existingEvent) {
-      throw new ConflictException(
-        `Event dengan idempotency key "${createEventDto.idempotency_key}" sudah ada`,
-      );
-    }
-
-    const event = this.eventRepository.create({
-      ...createEventDto,
-      status: EventStatus.PENDING,
-      retry_count: 0,
-      max_retries: createEventDto.max_retries || 5,
-      next_retry_at: null,
-      last_retry_at: null,
-      error_history: [],
-    });
-
-    await this.eventRepository.save(event);
-    this.logger.log(`Event ${event.id} published successfully`);
-    return event;
+  if (existingEvent) {
+    throw new ConflictException(
+      `Event dengan idempotency key "${createEventDto.idempotency_key}" sudah ada`,
+    );
   }
+
+  const event = this.eventRepository.create({
+    ...createEventDto,
+    status: EventStatus.PROCESSED,  // ✅ Langsung PROCESSED, bukan PENDING
+    retry_count: 0,
+    max_retries: createEventDto.max_retries || 5,
+    next_retry_at: null,
+    last_retry_at: null,
+    error_history: [],
+  });
+
+  await this.eventRepository.save(event);
+  this.logger.log(`Event ${event.id} published successfully`);
+  return event;
+}
 
   /**
    * Get events for Audit Log (History)
