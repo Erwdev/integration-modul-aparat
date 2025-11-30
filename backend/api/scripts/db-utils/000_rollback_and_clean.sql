@@ -41,7 +41,7 @@ DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
 -- ============================================
 
 -- Check if tables still exist
-DO $$
+DO $enum$
 DECLARE
     table_count INTEGER;
 BEGIN
@@ -56,6 +56,6 @@ BEGIN
     ELSE
         RAISE NOTICE '✓ Rollback berhasil! Semua tabel telah dihapus';
     END IF;
-END $$;
+END $enum$;
 
 COMMIT;

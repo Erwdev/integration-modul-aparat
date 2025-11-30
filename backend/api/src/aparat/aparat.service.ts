@@ -183,6 +183,19 @@ export class AparatService {
     const item = await this.repo.findOne({ where: { id } });
     if (!item) throw new NotFoundException();
     await this.repo.remove(item);
+
+    // ✅ Emit delete event untuk audit log
+    try {
+      await this.eventsService.publishEvent({
+        topic: EventTopic.APARAT_DELETED,
+        payload: { id: item.id, nama: item.nama },
+        source_module: SourceModule.APARAT,
+        idempotency_key: `aparat-delete-${item.id}-${Date.now()}`,
+      });
+    } catch (e) {
+      this.logger.warn(`Event publish failed (Ignored): ${e instanceof Error ? e.message : String(e)}`);
+    }
+
     return { message: 'Data berhasil dihapus' };
   }
 }
