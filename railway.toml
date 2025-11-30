@@ -5,5 +5,6 @@ buildCommand = "npm install && npm run build"
 [deploy]
 startCommand = "npm start"
 
-[nixpacks]
-providers = ["nodejs-22"]
+[[build.nixpacks.providers]]
+name = "nodejs"
+spec = "22"
