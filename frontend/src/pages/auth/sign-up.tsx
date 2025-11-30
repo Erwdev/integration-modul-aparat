@@ -23,6 +23,8 @@ export default function SignUpPage() {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
   // Ref untuk animasi
   const cardRef = useRef<HTMLDivElement>(null)
 
@@ -38,8 +40,6 @@ export default function SignUpPage() {
     setIsLoading(true)
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-      
       // Panggil endpoint REGISTER
       const response = await fetch(`${apiUrl}/api/v1/auth/register`, {
         method: 'POST',
