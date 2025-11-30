@@ -3,15 +3,13 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy root package.json
-COPY package.json ./
+# Copy all source files
+COPY . .
 
-# Copy workspace packages
-COPY backend/api ./backend/api
-COPY frontend ./frontend
-
-# Install dependencies and build
+# Install all dependencies (including devDeps for build)
 RUN npm install --legacy-peer-deps
+
+# Build the application
 RUN npm run build
 
 # Runtime stage
@@ -19,17 +17,14 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy root package.json
+# Copy package.json files
 COPY package.json ./
-
-# Copy workspace packages (only runtime needed files)
 COPY backend/api/package.json ./backend/api/
 
-# Install production dependencies only
-RUN npm install --omit=dev --legacy-peer-deps
-
-# Copy built assets from builder
+# Copy built output from builder
 COPY --from=builder /app/backend/api/dist ./backend/api/dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/backend/api/node_modules ./backend/api/node_modules
 
 # Expose port
 EXPOSE 3000
@@ -37,5 +32,5 @@ EXPOSE 3000
 # Set environment
 ENV NODE_ENV=production
 
-# Start application using compiled JS directly
+# Start application
 CMD ["node", "backend/api/dist/main.js"]
