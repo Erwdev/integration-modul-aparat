@@ -11,8 +11,11 @@ RUN npm ci
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
+# Copy package files and install dependencies in builder stage
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+# Copy source files
 COPY . .
 
 # Set environment variables
@@ -49,7 +52,7 @@ USER nextjs
 
 EXPOSE 3001
 
-ENV PORT=3001
-ENV HOSTNAME="0.0.0.0"
+ENV PORT=3001 \
+    HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]
