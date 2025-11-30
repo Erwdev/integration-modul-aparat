@@ -68,24 +68,24 @@ const Sidebar = ({ activeMenu = 'aparat' }: SidebarProps) => {
       icon: UserGroupIcon,
       value: 'aparat'
     },
-    {
-      href: '/ekspedisi',
-      label: 'Ekspedisi',
-      icon: TruckIcon,
-      value: 'ekspedisi'
-    },
-    {
-      href: '/surat',
-      label: 'Surat',
-      icon: DocumentTextIcon,
-      value: 'surat'
-    },
-    {
-      href: '/reports',
-      label: 'Laporan',
-      icon: ChartBarIcon,
-      value: 'reports'
-    },
+    // {
+    //   href: '/ekspedisi',
+    //   label: 'Ekspedisi',
+    //   icon: TruckIcon,
+    //   value: 'ekspedisi'
+    // },
+    // {
+    //   href: '/surat',
+    //   label: 'Surat',
+    //   icon: DocumentTextIcon,
+    //   value: 'surat'
+    // },
+    // {
+    //   href: '/reports',
+    //   label: 'Laporan',
+    //   icon: ChartBarIcon,
+    //   value: 'reports'
+    // },
     // Tambahkan menu events/audit log jika sudah ada di sidebar sebelumnya
     {
       href: '/events',

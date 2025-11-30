@@ -8,7 +8,7 @@ import { CreateAparatDto } from './dto/create-aparat.dto';
 import { UpdateAparatDto } from './dto/update-aparat.dto';
 import { FilterAparatDto } from './dto/filter-aparat.dto';
 import { EventsService } from '../events/events.service';
-import { EventTopic, SourceModule } from '../events/enums/index'; 
+import { EventTopic, SourceModule } from '../events/enums/index';
 import { StatusAparat } from './enums/status-aparat.enum';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class AparatService {
     private repo: Repository<Aparat>,
     private dataSource: DataSource,
     private eventsService: EventsService,
-  ) {}
+  ) { }
 
   // Helper JSON SK
   private formatSK(nomor?: string, tanggal?: string): string | null {
@@ -50,6 +50,7 @@ export class AparatService {
 
       const aparat = this.repo.create({
         ...dto, // Spread properti dasar
+        nip: dto.nip === '' ? null : dto.nip, // Handle empty string NIP
         nomorUrut: nomorUrut,
         tanggalLahir: new Date(dto.tanggalLahir),
         // Format SK ke JSON String
@@ -95,7 +96,7 @@ export class AparatService {
     queryBuilder.skip(skip).take(limit);
 
     const [data, total] = await queryBuilder.getManyAndCount();
-    
+
     // Parse JSON SK saat read
     const parsedData = data.map(item => ({
       ...item,
@@ -114,7 +115,7 @@ export class AparatService {
   async findOne(id: string) {
     const item = await this.repo.findOne({ where: { id } });
     if (!item) throw new NotFoundException(`Aparat tidak ditemukan`);
-    
+
     item.skPengangkatan = this.tryParseJSON(item.skPengangkatan) as any;
     item.skPemberhentian = this.tryParseJSON(item.skPemberhentian) as any;
     return item;
@@ -127,7 +128,7 @@ export class AparatService {
     // Mapping Manual untuk Update
     if (dto.nama) item.nama = dto.nama;
     if (dto.nik) item.nik = dto.nik;
-    if (dto.nip !== undefined) item.nip = dto.nip;
+    if (dto.nip !== undefined) item.nip = dto.nip === '' ? null : dto.nip;
     if (dto.jabatan) item.jabatan = dto.jabatan;
     if (dto.pangkatGolongan !== undefined) item.pangkatGolongan = dto.pangkatGolongan;
     if (dto.status) item.status = dto.status as StatusAparat;
@@ -140,19 +141,19 @@ export class AparatService {
 
     // Update SK
     if (dto.skPengangkatanNomor !== undefined || dto.skPengangkatanTanggal !== undefined) {
-        const existing = this.tryParseJSON(item.skPengangkatan) as any || {};
-        item.skPengangkatan = this.formatSK(
-            dto.skPengangkatanNomor ?? existing.nomor,
-            dto.skPengangkatanTanggal ?? existing.tanggal
-        );
+      const existing = this.tryParseJSON(item.skPengangkatan) as any || {};
+      item.skPengangkatan = this.formatSK(
+        dto.skPengangkatanNomor ?? existing.nomor,
+        dto.skPengangkatanTanggal ?? existing.tanggal
+      );
     }
-    
+
     if (dto.skPemberhentianNomor !== undefined || dto.skPemberhentianTanggal !== undefined) {
-        const existing = this.tryParseJSON(item.skPemberhentian) as any || {};
-        item.skPemberhentian = this.formatSK(
-            dto.skPemberhentianNomor ?? existing.nomor,
-            dto.skPemberhentianTanggal ?? existing.tanggal
-        );
+      const existing = this.tryParseJSON(item.skPemberhentian) as any || {};
+      item.skPemberhentian = this.formatSK(
+        dto.skPemberhentianNomor ?? existing.nomor,
+        dto.skPemberhentianTanggal ?? existing.tanggal
+      );
     }
 
     const saved = await this.repo.save(item);
@@ -170,18 +171,18 @@ export class AparatService {
   }
 
   async patchStatus(id: string, status: string) {
-      const item = await this.findOne(id); // findOne sudah parse JSON, tapi save() akan stringify otomatis oleh DB driver biasanya aman
-      // Untuk aman, load raw
-      const rawItem = await this.repo.findOne({ where: { id } });
-      if(!rawItem) throw new NotFoundException();
-      rawItem.status = status as StatusAparat;
-      return await this.repo.save(rawItem);
+    const item = await this.findOne(id); // findOne sudah parse JSON, tapi save() akan stringify otomatis oleh DB driver biasanya aman
+    // Untuk aman, load raw
+    const rawItem = await this.repo.findOne({ where: { id } });
+    if (!rawItem) throw new NotFoundException();
+    rawItem.status = status as StatusAparat;
+    return await this.repo.save(rawItem);
   }
 
   async remove(id: string) {
-      const item = await this.repo.findOne({ where: { id } });
-      if (!item) throw new NotFoundException();
-      await this.repo.remove(item);
-      return { message: 'Data berhasil dihapus' };
+    const item = await this.repo.findOne({ where: { id } });
+    if (!item) throw new NotFoundException();
+    await this.repo.remove(item);
+    return { message: 'Data berhasil dihapus' };
   }
 }

@@ -40,7 +40,7 @@ const EditAparatModal = ({ isOpen, onClose, onSubmit, aparat }: EditAparatModalP
 
   const handleSubmit = () => {
     if (!formData) return;
-    
+
     if (!formData.nama || !formData.jabatan || !formData.agama || !formData.tempatLahir || !formData.tanggalLahir) {
       alert("Mohon lengkapi field bertanda bintang (*)!");
       return;
@@ -55,7 +55,7 @@ const EditAparatModal = ({ isOpen, onClose, onSubmit, aparat }: EditAparatModalP
       tanggalLahir: formData.tanggalLahir,
       jabatan: formData.jabatan,
       agama: formData.agama,
-      
+
       nip: formData.nip || '',
       pangkatGolongan: formData.pangkatGolongan || '',
       pendidikanTerakhir: formData.pendidikanTerakhir || '',
@@ -67,7 +67,7 @@ const EditAparatModal = ({ isOpen, onClose, onSubmit, aparat }: EditAparatModalP
       skPemberhentianNomor: formData.skPemberhentian?.nomor || '',
       skPemberhentianTanggal: formData.skPemberhentian?.tanggal || '',
     };
-    
+
     onSubmit(cleanPayload);
     onClose();
   };
@@ -81,7 +81,7 @@ const EditAparatModal = ({ isOpen, onClose, onSubmit, aparat }: EditAparatModalP
           <DialogTitle>Edit Data Aparat</DialogTitle>
           <DialogDescription>Ubah data aparat di bawah ini.</DialogDescription>
         </DialogHeader>
-        
+
         <div className="grid gap-4 py-4">
           {/* Nama & NIK */}
           <div className="grid gap-2">
@@ -100,7 +100,7 @@ const EditAparatModal = ({ isOpen, onClose, onSubmit, aparat }: EditAparatModalP
               className="bg-gray-100 cursor-not-allowed text-gray-500"
             />
           </div>
-          
+
           <div className="grid gap-2">
             <Label>NIP/NIAPD <span className="text-gray-400 text-xs">(Opsional)</span></Label>
             <Input
@@ -179,7 +179,7 @@ const EditAparatModal = ({ isOpen, onClose, onSubmit, aparat }: EditAparatModalP
                 <SelectItem value="Kepala Seksi Pemerintahan">Kasi Pemerintahan</SelectItem>
                 <SelectItem value="Kepala Seksi Kesejahteraan">Kasi Kesejahteraan</SelectItem>
                 <SelectItem value="Kepala Seksi Pelayanan">Kasi Pelayanan</SelectItem>
-                <SelectItem value="Dukuh">Dukuh / Kepala Dusun</SelectItem>
+                <SelectItem value="Kepala Dusun">Dukuh / Kepala Dusun</SelectItem>
                 <SelectItem value="Staf">Staf</SelectItem>
               </SelectContent>
             </Select>
