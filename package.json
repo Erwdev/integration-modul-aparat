@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "npm run build --workspace=backend/api",
-    "start": "npm start --workspace=backend/api",
+    "start": "node backend/api/dist/main.js",
     "dev": "npm run start:dev --workspace=backend/api"
   },
   "workspaces": [
