@@ -22,9 +22,8 @@ WORKDIR /app
 # Copy root package.json
 COPY package.json ./
 
-# Copy workspace packages
-COPY backend/api ./backend/api
-COPY frontend ./frontend
+# Copy workspace packages (only runtime needed files)
+COPY backend/api/package.json ./backend/api/
 
 # Install production dependencies only
 RUN npm install --omit=dev --legacy-peer-deps
@@ -38,5 +37,5 @@ EXPOSE 3000
 # Set environment
 ENV NODE_ENV=production
 
-# Start application
-CMD ["npm", "start"]
+# Start application using compiled JS directly
+CMD ["node", "backend/api/dist/main.js"]
