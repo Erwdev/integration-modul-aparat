@@ -1,7 +1,0 @@
-[build]
-builder = "dockerfile"
-dockerfile = "./Dockerfile"
-
-[deploy]
-startCommand = "npm start"
-healthCheckPath = "/"
