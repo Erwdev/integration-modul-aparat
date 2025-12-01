@@ -188,7 +188,14 @@ export class AparatService {
     try {
       await this.eventsService.publishEvent({
         topic: EventTopic.APARAT_DELETED,
-        payload: { id: item.id, nama: item.nama },
+        payload: { 
+          id: item.id, 
+          nama: item.nama,
+          nik: item.nik,
+          jabatan: item.jabatan,
+          status: item.status,
+          deletedAt: new Date().toISOString(),
+        },
         source_module: SourceModule.APARAT,
         idempotency_key: `aparat-delete-${item.id}-${Date.now()}`,
       });
