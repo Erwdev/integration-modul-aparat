@@ -42,7 +42,7 @@ const AddAparatModal = ({ isOpen, onClose, onSubmit }: AddAparatModalProps) => {
   const [isUploading, setIsUploading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!formData.nama || !formData.nik || !formData.jabatan || !formData.agama || !formData.tempatLahir || !formData.tanggalLahir) {
+    if (!formData.nama || !formData.nik || !formData.jabatan || !formData.agama || !formData.tempatLahir || !formData.tanggalLahir || !formData.nip) {
       alert("Mohon lengkapi field bertanda bintang (*)!");
       return;
     }
@@ -102,7 +102,7 @@ const AddAparatModal = ({ isOpen, onClose, onSubmit }: AddAparatModalProps) => {
               <Input value={formData.nik} maxLength={16} onChange={(e) => setFormData({ ...formData, nik: e.target.value.replace(/\D/g, '') })} />
             </div>
             <div className="grid gap-2">
-              <Label>NIP/NIAPD</Label>
+              <Label>NIP/NIAPD <span className="text-red-500">*</span></Label>
               <Input value={formData.nip} onChange={(e) => setFormData({ ...formData, nip: e.target.value })} />
             </div>
           </div>

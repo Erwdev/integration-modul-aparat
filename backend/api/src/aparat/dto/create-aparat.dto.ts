@@ -9,7 +9,7 @@ export class CreateAparatDto {
 
   @IsNotEmpty() @Length(16,16) nik: string;
 
-  @IsOptional() @IsString() nip?: string;
+  @IsNotEmpty() @IsString() nip: string;
 
   @IsNotEmpty() jenisKelamin: 'L'|'P';
 

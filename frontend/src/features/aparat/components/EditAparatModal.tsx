@@ -41,7 +41,7 @@ const EditAparatModal = ({ isOpen, onClose, onSubmit, aparat }: EditAparatModalP
   const handleSubmit = () => {
     if (!formData) return;
 
-    if (!formData.nama || !formData.jabatan || !formData.agama || !formData.tempatLahir || !formData.tanggalLahir) {
+    if (!formData.nama || !formData.jabatan || !formData.agama || !formData.tempatLahir || !formData.tanggalLahir || !formData.nip) {
       alert("Mohon lengkapi field bertanda bintang (*)!");
       return;
     }
@@ -102,7 +102,7 @@ const EditAparatModal = ({ isOpen, onClose, onSubmit, aparat }: EditAparatModalP
           </div>
 
           <div className="grid gap-2">
-            <Label>NIP/NIAPD <span className="text-gray-400 text-xs">(Opsional)</span></Label>
+            <Label>NIP/NIAPD <span className="text-red-500">*</span></Label>
             <Input
               value={formData.nip || ''}
               onChange={(e) => setFormData({ ...formData, nip: e.target.value })}
