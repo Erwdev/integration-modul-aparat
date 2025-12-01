@@ -65,12 +65,19 @@ export class AparatService {
       try {
         await this.eventsService.publishEvent({
           topic: EventTopic.APARAT_CREATED,
-          payload: { id: saved.id, nama: saved.nama },
+          payload: {
+            id: saved.id,
+            nama: saved.nama,
+            nik: saved.nik,
+            jabatan: saved.jabatan,
+            status: saved.status,
+            nomorUrut: saved.nomorUrut,
+          },
           source_module: SourceModule.APARAT,
           idempotency_key: `aparat-create-${saved.id}`,
         });
       } catch (e) {
-        this.logger.warn(`Event publish failed (Ignored): ${e.message}`);
+        this.logger.warn(`Event publish failed (Ignored): ${e instanceof Error ? e.message : String(e)}`);
       }
 
       await queryRunner.commitTransaction();
@@ -161,11 +168,21 @@ export class AparatService {
     try {
       await this.eventsService.publishEvent({
         topic: EventTopic.APARAT_UPDATED,
-        payload: { id: saved.id, changes: dto },
+        payload: {
+          id: saved.id,
+          nama: saved.nama,
+          nik: saved.nik,
+          jabatan: saved.jabatan,
+          status: saved.status,
+          nomorUrut: saved.nomorUrut,
+          changes: dto,
+        },
         source_module: SourceModule.APARAT,
         idempotency_key: `aparat-update-${saved.id}-${Date.now()}`,
       });
-    } catch (e) { this.logger.warn(`Event Error: ${e.message}`); }
+    } catch (e) {
+      this.logger.warn(`Event publish failed (Ignored): ${e instanceof Error ? e.message : String(e)}`);
+    }
 
     return saved;
   }
