@@ -1,112 +1,230 @@
-# feature/perbaikan-auth-dan-migrasi
+# Integration Modul Aparat
+
+Sistem Informasi Manajemen Aparat yang terintegrasi untuk Sistem Administrasi Desa. Aplikasi ini dibangun dengan arsitektur modern menggunakan Next.js dan NestJS.
 
 ## 🛠️ Tech Stack
+### Frontend
+- **Framework:** [Next.js 14](https://nextjs.org/ "null") (Pages Router)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/ "null")
+- **UI Components:** [Shadcn UI](https://ui.shadcn.com/ "null") (Radix UI), Lucide Icons
+- **State Management & Fetching:** React Hooks
+### Backend
+- **Framework:** [NestJS](https://nestjs.com/ "null")
+- **Database ORM:** [TypeORM](https://typeorm.io/ "null")
+- **Database:** PostgreSQL 16
+- **Documentation:** Swagger UI
+### Infrastructure
+- **Containerization:** Docker & Docker Compose
 
-- **Frontend:** Next.js 14 (Pages Router), Tailwind CSS, Lucide Icons, Shadcn UI (Radix).
-- **Backend:** NestJS, TypeORM.
-- **Database:** PostgreSQL 16.
-- **Infrastructure:** Docker Compose.
-- **Communication:** REST API + Event Bus (Audit Log).
+## 📋 Prasyarat (Prerequisites)
 
-## ⚠️ Panduan Setup untuk Developer Baru (Teammates)
+Sebelum memulai, pastikan sistem Anda telah terinstal software berikut:
 
-Karena terjadi perubahan besar pada struktur tabel database dan logika autentikasi, teman tim **WAJIB** mengikuti langkah ini agar tidak error:
+1. **Git** (Version Control System)
+2. **Node.js v18** atau lebih tinggi
+3. **Docker & Docker Compose**
+4. **PostgreSQL Client** (Opsional, untuk akses database CLI)
 
-### 1. Clone & Pull
-
+Verifikasi instalasi dengan menjalankan perintah berikut di terminal:
 ```
-git pull origin feature/perbaikan-auth-dan-migrasi
+git --version
+node --version
+docker --version
+docker compose version
 ```
-### 2. Setup Environment (.env)
 
-Pastikan file `.env` memiliki konfigurasi berikut (terutama `JWT_SECRET` dan `CORS_ORIGIN`).
+## ⚙️ Setup Development Lokal
 
-Cara Generate Token Rahasia:
-Jalankan perintah ini di terminal untuk mendapatkan string acak:
-
+### 1. Clone Repository
 ```
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+git clone [https://github.com/Erwdev/integration-modul-aparat.git](https://github.com/Erwdev/integration-modul-aparat.git)
+cd integration-modul-aparat
 ```
-_(Copy hasilnya ke `JWT_SECRET` dan `JWT_REFRESH_SECRET` di .env)_
 
-**Contoh `.env`:**
+### 2. Install Dependencies
+Install dependencies untuk backend dan frontend secara terpisah.
 
+**Backend:**
 ```
+cd backend/api
+npm install
+```
+
+**Frontend:**
+```
+cd frontend
+npm install
+```
+
+### 3. Konfigurasi Environment Variables
+
+Backend Environment:
+
+Buat file .env di root folder project dengan konfigurasi berikut:
+```
+# APPLICATION
 PORT=3000
+HOST=localhost
+NODE_ENV=development
+BASE_URL=http://localhost:3000
+
+# DATABASE (DOCKER)
 DB_HOST=db
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
 DB_DATABASE=aparat_db
+DATABASE_URL=postgresql://postgres:postgres@db:5432/aparat_db
+
+# JWT AUTHENTICATION
+JWT_SECRET=... (lihat cara generate di bawah)
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_SECRET=... (lihat cara generate di bawah)
+JWT_REFRESH_EXPIRES_IN=7d
+
+# SECURITY
+BCRYPT_ROUNDS=10
 CORS_ORIGIN=http://localhost:3001
-JWT_SECRET=paste_hasil_generate_disini
-JWT_REFRESH_SECRET=paste_hasil_generate_lainnya_disini
+
+# SWAGGER DOCUMENTATION
+SWAGGER_ENABLED=true
+SWAGGER_PATH=api-docs
+
+# API KEYS & FILE UPLOAD
 API_KEY=rahasia
+UPLOAD_DIR=./uploads
+MAX_FILE_SIZE=2097152
+ALLOWED_FILE_TYPES=.png,.jpg,.jpeg,.pdf
 ```
 
-### 3. 🚨 RESET DATABASE (Wajib!)
+Generate JWT Secret:
 
-Langkah ini menghapus database lama yang skemanya konflik dengan kode baru.
-
+Jalankan perintah ini di terminal untuk mendapatkan string acak yang aman, lalu copy hasilnya ke JWT_SECRET dan JWT_REFRESH_SECRET di file .env:
 ```
-# Matikan container & Hapus Volume
-docker compose down -v
-
-# Build ulang container
-docker compose up -d --build
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-### 4. 🔑 Restore Password Admin
+Frontend Environment:
 
-Setelah reset DB, password `admin` kembali ke default dan tidak bisa digunakan login. Anda harus membuat hash baru.
-
-A. Generate Hash Password Baru:
-
-Jalankan perintah ini untuk membuat hash aman dari "admin123":
-
+Buat file .env.local di dalam folder frontend/ dengan isi:
 ```
-docker compose exec backend node -e "const bcrypt = require('bcrypt'); console.log(bcrypt.hashSync('admin123', 10))"
-```
-	
-_(Copy output string yang berawalan `$2b$10$...`)_
-
-B. Update Database:
-
-Masukkan hash tersebut ke database:
-
-```
-# Masuk ke database
-docker compose exec db psql -U postgres -d aparat_db
+# Development
+NEXT_PUBLIC_API_URL=http://localhost:3000/api
 ```
 
+## 🚀 Cara Menjalankan Aplikasi
+
+### Opsi 1: Menggunakan Docker Compose (Recommended)
+
+Cara termudah untuk menjalankan semua service sekaligus.
 ```
--- Ganti HASH_BARU dengan string yang Anda copy tadi
-UPDATE users SET password = 'HASH_BARU' WHERE username = 'admin';
-
--- selesai
-\q
+# Build dan jalankan container di background
+docker compose up -d
 ```
 
-**Login Default:**
+Cek status container untuk memastikan semua berjalan:
+```
+docker compose ps
+```
 
-- **User:** `admin`
-- **Pass:** `admin123` (atau password lain sesuai yang Anda hash)
+### Opsi 2: Menjalankan Manual (Tanpa Docker Compose)
 
-## 📝 Catatan Teknis & Debugging
+Gunakan cara ini jika Anda ingin menjalankan service satu per satu.
 
-### 1. Isu "Internal Server Error" (500) di Audit Log
+Terminal 1 - Database:
 
-- **Penyebab:** Database lama menyimpan status `pending` (kecil), kode baru minta `PENDING` (besar).
-- **Solusi:** Sudah diperbaiki di file migrasi `003`. Reset DB (`docker compose down -v`) menyelesaikan ini.
+Jalankan container PostgreSQL:
+```
+docker run --name postgres-aparat \
+-e POSTGRES_PASSWORD=postgres \
+-e POSTGRES_DB=aparat_db \
+-p 5432:5432 -d postgres:16
+```
 
-### 2. Isu "Bad Request" (400) di Edit Aparat
+**Terminal 2 - Backend:**
+```
+cd backend/api
+npm run start:dev
+```
 
-- **Penyebab:** Frontend mengirim field sampah (`created_at`, `version`) yang ditolak Backend.
-- **Solusi:** Sudah diperbaiki di `EditAparatModal.tsx` dengan teknik _whitelisting payload_.
+**Terminal 3 - Frontend:**
+```
+cd frontend
+npm run dev
+```
 
-### 3. Tampilan Form Transparan / Rusak
+## 🌐 Akses Aplikasi
 
-- **Penyebab:** Konfigurasi Tailwind tidak membaca folder `src`.
-- **Solusi:** Sudah diperbaiki di `tailwind.config.js`. Jika terjadi lagi, restart container frontend.
+Setelah aplikasi berjalan, akses melalui browser:
 
-## 🚀 Sekian Terima Kasih
+- **Frontend:** [http://localhost:3001](https://www.google.com/search?q=http://localhost:3001 "null")
+- **Backend API:** [http://localhost:3000/api](https://www.google.com/search?q=http://localhost:3000/api "null")
+- **Swagger Docs:** [http://localhost:3000/api-docs](https://www.google.com/search?q=http://localhost:3000/api-docs "null")    
+
+## 🔐 Login Credentials
+
+Gunakan akun default berikut untuk login administrator:
+
+- **Username:** `admin`
+- **Email:** `admin@aparat.local`
+- **Password:** (Lihat seed data di `backend/api/migrations/001_init.sql`)
+
+Reset Password (Jika Lupa):
+
+Anda dapat mereset password admin langsung melalui database:
+
+1. Generate hash password baru:
+    ```
+    node -e "console.log(require('bcrypt').hashSync('passwordBaru123', 10))"
+    ```
+    
+2. Update database:
+    ```
+    UPDATE users
+    SET password = '<paste-hash-disini>'
+    WHERE username = 'admin';
+    ```
+
+## 🛠️ Useful Commands
+
+**Database Management:**
+```
+# Menjalankan migrasi manual
+npm run migration:run
+
+# Mengisi data awal (Seeding)
+npm run seed
+```
+
+**Code Quality:**
+```
+# Lint code
+npm run lint
+
+# Format code
+npm run format
+
+# Run tests
+npm run test
+```
+
+## ❓ Troubleshooting
+
+**1. Frontend Tidak Bisa Akses API (CORS Error)**
+
+- Verifikasi `NEXT_PUBLIC_API_URL` di `frontend/.env.local`.
+- Cek `CORS_ORIGIN` di backend `.env` apakah sudah sesuai dengan URL frontend.
+- Test API backend dengan curl: `curl http://localhost:3000/api/health`.
+
+**2. Database Connection Error**
+
+- Cek status container: `docker compose ps`.
+- Cek logs database: `docker compose logs db`.
+- Restart container db: `docker compose restart db`.
+
+**3. Port Conflict (Port 3000 already in use)**
+
+- Kill process di port 3000 atau ubah `PORT` di file `.env` (misal jadi 3002).
+
+Support & Contact:
+Jika mengalami masalah, cek logs dengan docker compose logs atau hubungi tim pengembang.
